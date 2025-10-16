@@ -1,11 +1,12 @@
-import colors from 'colors';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import chalk from 'chalk';
 import { User } from '../app/modules/user/user.model';
 import config from '../config';
 import { USER_ROLES } from '../enums/user';
 import { logger } from '../shared/logger';
 
 const superUser = {
-  name: 'Barbar salon',
+  name: 'Jurnee',
   role: USER_ROLES.ADMIN,
   email: config.admin.email,
   password: config.admin.password,
@@ -20,12 +21,12 @@ const seedAdmin = async () => {
 
     if (!isExistSuperAdmin) {
       await User.create(superUser);
-      logger.info(colors.green('✔ admin created successfully!'));
+      logger.info(chalk.green('✔ admin created successfully!'));
     } else {
-      console.log('Admin already exists.');
+      logger.info(chalk.green('✔ admin already exist!'));
     }
   } catch (error) {
-    console.error('Error creating admin:', error);
+    logger.error(chalk.red(error as any));
   }
 };
 
