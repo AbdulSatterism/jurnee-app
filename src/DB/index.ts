@@ -11,6 +11,10 @@ const superUser = {
   email: config.admin.email,
   password: config.admin.password,
   phone: '14524578',
+  location: {
+    type: 'Point',
+    coordinates: [0, 0],
+  },
   verified: true,
   gender: 'MALE',
 };

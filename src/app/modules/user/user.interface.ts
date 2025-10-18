@@ -16,6 +16,7 @@ export type IUser = {
   image?: string;
   isDeleted?: boolean;
   verified: boolean;
+  address?: string;
   location: {
     type: string;
     coordinates: [longtitude: number, latitude: number];

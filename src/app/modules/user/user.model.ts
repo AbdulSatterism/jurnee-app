@@ -24,28 +24,31 @@ const userSchema = new Schema<IUser, UserModal>(
       select: 0,
       minlength: 8,
     },
+    address: {
+      type: String,
+      required: false,
+      default: '',
+    },
     googleId: {
       type: String,
-      unique: true,
     },
     appleId: {
       type: String,
-      unique: true,
     },
     phone: {
       type: String,
       required: false,
-      default: null,
+      default: '',
     },
     bio: {
       type: String,
       required: false,
-      default: null,
+      default: '',
     },
     interested: {
       type: [String],
       required: false,
-      default: null,
+      default: '',
     },
     role: {
       type: String,
