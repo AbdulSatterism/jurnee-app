@@ -28,13 +28,24 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       unique: true,
     },
-    facebookId: {
+    appleId: {
       type: String,
       unique: true,
     },
     phone: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
+    },
+    bio: {
+      type: String,
+      required: false,
+      default: null,
+    },
+    interested: {
+      type: [String],
+      required: false,
+      default: null,
     },
     role: {
       type: String,
@@ -42,39 +53,13 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     image: {
       type: String,
-      default: '/default/user.jpg',
+      default: '/public/user.jpg',
     },
     gender: {
       type: String,
       enum: ['MALE', 'FEMALE', 'OTHERS'],
     },
-    age: {
-      type: Number,
-    },
-    height: {
-      type: Number,
-    },
-    weight: {
-      type: Number,
-    },
-    country: {
-      type: String,
-    },
-    fitnessLevel: {
-      type: String,
-      enum: ['BASIC', 'INTERMEDIATE', 'ADVANCED'],
-    },
-    injury: {
-      type: String,
-    },
-    payment: {
-      type: Boolean,
-      default: false,
-    },
-    subscription: {
-      type: Boolean,
-      default: false,
-    },
+
     isDeleted: {
       type: Boolean,
       default: false,
@@ -83,7 +68,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: Boolean,
       default: false,
     },
-
+    location: {
+      type: { type: String, default: 'Point' },
+      coordinates: { type: [Number] },
+    },
     authentication: {
       type: {
         isResetPassword: {
@@ -104,6 +92,8 @@ const userSchema = new Schema<IUser, UserModal>(
   },
   { timestamps: true },
 );
+
+userSchema.index({ location: '2dsphere' });
 
 //exist user check
 userSchema.statics.isExistUserById = async (id: string) => {
