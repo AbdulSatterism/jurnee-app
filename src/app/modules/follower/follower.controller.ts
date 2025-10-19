@@ -4,7 +4,12 @@ import sendResponse from '../../../shared/sendResponse';
 import { FollowerService } from './follower.services';
 
 const createFollower = catchAsync(async (req, res) => {
-  await FollowerService.createFollower(req.body);
+  const body = {
+    followed: req.user.id,
+    ...req.body,
+  };
+
+  await FollowerService.createFollower(body);
 
   sendResponse(res, {
     success: true,
