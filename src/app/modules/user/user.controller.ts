@@ -24,7 +24,13 @@ const getAllUser = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'all user retrieved successfully',
-    data: result,
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
   });
 });
 
@@ -82,6 +88,16 @@ const searchByPhone = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteUser = catchAsync(async (req, res) => {
+  const result = await UserService.deleteUser(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User deleted successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -89,4 +105,5 @@ export const UserController = {
   searchByPhone,
   getSingleUser,
   getAllUser,
+  deleteUser,
 };

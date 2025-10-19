@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Schema } from 'mongoose';
 import { TErrorSource, TGenericErrorResponse } from '../interface';
+import { IFollowing } from '../modules/following/following.interface';
 
 const handleDuplicateError = (err: any): TGenericErrorResponse => {
   const match = err.message.match(/"([^"]*)"/);
@@ -23,3 +25,25 @@ const handleDuplicateError = (err: any): TGenericErrorResponse => {
 };
 
 export default handleDuplicateError;
+const followingSchema = new Schema<IFollowing>(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    following: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    isFollowing: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  },
+  {},
+);

@@ -17,6 +17,7 @@ export type IUser = {
   isDeleted?: boolean;
   verified: boolean;
   address?: string;
+  post?: number;
   location: {
     type: string;
     coordinates: [longtitude: number, latitude: number];

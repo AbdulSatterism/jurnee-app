@@ -45,6 +45,10 @@ const userSchema = new Schema<IUser, UserModal>(
       required: false,
       default: '',
     },
+    post: {
+      type: Number,
+      default: 0,
+    },
     interested: {
       type: [String],
       required: false,
