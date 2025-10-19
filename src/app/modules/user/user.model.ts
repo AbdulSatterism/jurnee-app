@@ -48,7 +48,7 @@ const userSchema = new Schema<IUser, UserModal>(
     interested: {
       type: [String],
       required: false,
-      default: '',
+      default: [],
     },
     role: {
       type: String,

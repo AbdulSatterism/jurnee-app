@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import config from '../config';
 import { errorLogger, logger } from '../shared/logger';
 import { ISendEmail } from '../types/email';
+import chalk from 'chalk';
 
 const transporter = nodemailer.createTransport({
   host: config.email.host,
@@ -22,7 +23,7 @@ const sendEmail = async (values: ISendEmail) => {
       html: values.html,
     });
 
-    logger.info('Mail send successfully', info.accepted);
+    logger.info(chalk.green('Mail send successfully'), info.accepted);
   } catch (error) {
     errorLogger.error('Email', error);
   }
