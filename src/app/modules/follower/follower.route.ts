@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import validateRequest from '../../middlewares/validateRequest';
-import { followerValidation } from './follower.validation';
 import { FollowerController } from './follower.controller';
+import auth from '../../middlewares/auth';
+import { USER_ROLES } from '../../../enums/user';
 
 const router = Router();
 
 router.post(
-  '/update-follower',
-  validateRequest(followerValidation),
+  '/follow-unfollow',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   FollowerController.createFollower,
 );
 

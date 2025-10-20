@@ -4,17 +4,15 @@ import sendResponse from '../../../shared/sendResponse';
 import { FollowerService } from './follower.services';
 
 const createFollower = catchAsync(async (req, res) => {
-  const body = {
-    followed: req.user.id,
-    ...req.body,
-  };
+  const id = req.user.id;
 
-  await FollowerService.createFollower(body);
+  const result = await FollowerService.createFollower(id, req.body);
 
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'Followed.',
+    message: result.isFollower ? 'Followed' : 'Unfollowed',
+    data: result,
   });
 });
 

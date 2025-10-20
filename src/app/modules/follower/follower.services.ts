@@ -1,8 +1,11 @@
 import { IFollower } from './follower.interface';
 import { Follower } from './follower.model';
+import { Types } from 'mongoose';
 
-const createFollower = async (payload: IFollower) => {
+const createFollower = async (id: string, payload: IFollower) => {
+  payload.followed = new Types.ObjectId(id);
   const { followed, follower } = payload;
+
   // here have some business logic
   /* 
   . followed is  some one follow him
@@ -10,7 +13,12 @@ const createFollower = async (payload: IFollower) => {
   . create a relationship between followed and follower
   . isFollower by default is true
   . if this follower already followed this followed then if follow again just update isFollower true to false or false to true
+  . also check that followed and follower should not be same
   */
+
+  if (followed.equals(follower)) {
+    throw new Error('You cannot follow yourself');
+  }
 
   const existingFollower = await Follower.findOne({ followed, follower });
   if (existingFollower) {
