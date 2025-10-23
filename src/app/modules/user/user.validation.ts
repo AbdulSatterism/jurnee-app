@@ -18,6 +18,15 @@ const updateUserProfileSchema = z.object({
     name: z.string().optional(),
     phone: z.string().optional(),
     bio: z.string().optional(),
+    address: z.string().optional(),
+    location: z
+      .object({
+        type: z.literal('Point'),
+        coordinates: z.array(z.number()),
+      })
+      .optional(),
+    interested: z.array(z.string()).optional(),
+    gender: z.enum(['MALE', 'FEMALE', 'OTHERS']).optional(),
   }),
 });
 

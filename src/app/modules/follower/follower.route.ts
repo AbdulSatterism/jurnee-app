@@ -11,4 +11,16 @@ router.post(
   FollowerController.createFollower,
 );
 
+router.get(
+  '/my-followers',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  FollowerController.getAllFollowers,
+);
+
+router.get(
+  '/my-following',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  FollowerController.getAllFollowing,
+);
+
 export const FollowerRoutes = router;
