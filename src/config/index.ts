@@ -36,4 +36,10 @@ export default {
     key: process.env.GPT_API,
     gpt_model_url: process.env.GPT_MODEL_URL,
   },
+
+  cloudinary: {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  },
 };

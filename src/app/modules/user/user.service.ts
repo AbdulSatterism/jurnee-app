@@ -10,8 +10,9 @@ import generateOTP from '../../../util/generateOTP';
 
 import { IUser } from './user.interface';
 import { User } from './user.model';
-import unlinkFile from '../../../shared/unlinkFile';
+
 import AppError from '../../errors/AppError';
+import { deleteFromCloudinary } from '../../../helpers/cloudinaryHelper';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
@@ -106,7 +107,7 @@ const updateProfileToDB = async (
   }
 
   if (payload.image && isExistUser.image) {
-    unlinkFile(isExistUser.image);
+    await deleteFromCloudinary(isExistUser.image);
   }
 
   const updateDoc = await User.findOneAndUpdate({ _id: id }, payload, {
