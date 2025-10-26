@@ -2,34 +2,29 @@ import { Types } from 'mongoose';
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
-/*
-Field are => image, media(multiple image or video), title, description, price, schedule(like friday:3:00PM to 10:PM for everyday) , location (will be long, lat) , has tag, capacity, amenities, sevice type, licenses, retes(hourly or daily),missing name, missing age, clothing, last location, last seen date, contact info, auto expire date, pic date, pick time, author, view, like,
-
-*/
-
-export interface BasePost {
+export interface IPost {
   author: Types.ObjectId;
-  image: string;
-  media: string[];
-  title: string;
-  description: string;
+  image?: string;
+  media?: string[];
+  title?: string;
+  description?: string;
   startDate?: Date;
   startTime?: string;
-  address: string;
-  location: {
+  address?: string;
+  location?: {
     type: 'Point';
     coordinates: [longitude: number, latitude: number];
   };
-  hasTag: string[];
+  hasTag?: string[];
 
   // for deal posts
   endDate?: string;
 
   // for service posts
   startingPrice?: number;
-  schedule: { day: WeekDay; startTime: string; endTime: string }[];
-  category: string;
-  serviceType: string;
+  schedule?: { day: WeekDay; startTime: string; endTime: string }[];
+  category?: string;
+  serviceType?: string;
 
   // for alert posts
   missingName?: string;
@@ -42,9 +37,9 @@ export interface BasePost {
   lastSeenDate?: Date;
   contactInfo?: string;
   expireLimit?: number; // in days
-  capacity: number;
-  amenities: string[];
-  licenses: string;
+  capacity?: number;
+  amenities?: string[];
+  licenses?: string;
   views?: number;
   likes?: number;
 }
