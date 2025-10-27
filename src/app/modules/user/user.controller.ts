@@ -6,9 +6,12 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 import getFilePath from '../../../shared/getFilePath';
+import { Cache } from '../../../lib/cache';
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   await UserService.createUserFromDb(req.body);
+
+  await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,
@@ -52,6 +55,8 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   const result = await UserService.updateProfileToDB(user, req.body);
 
+  await Cache.delByPattern('users:*');
+
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -90,6 +95,9 @@ const searchByPhone = catchAsync(async (req: Request, res: Response) => {
 
 const deleteUser = catchAsync(async (req, res) => {
   const result = await UserService.deleteUser(req.user.id);
+
+  await Cache.delByPattern('users:*');
+
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
