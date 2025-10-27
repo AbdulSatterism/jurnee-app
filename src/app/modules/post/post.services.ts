@@ -11,6 +11,11 @@ const createEvent = async (author: string, payload: IPost) => {
   }
 
   payload.author = isExist._id;
+
+  if (payload.media && !Array.isArray(payload.media)) {
+    payload.media = [payload.media];
+  }
+
   const result = await Post.create(payload);
 
   await User.findByIdAndUpdate(author, {

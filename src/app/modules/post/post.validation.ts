@@ -32,7 +32,7 @@ const eventValidation = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
-    startDate: z.date(),
+    startDate: z.string(),
     startTime: z.string(),
     address: z.string(),
     location: z.object({

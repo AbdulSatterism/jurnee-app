@@ -9,6 +9,7 @@ import catchAsync from '../../shared/catchAsync';
 import { errorLogger } from '../../shared/logger';
 import AppError from '../errors/AppError';
 import config from '../../config';
+import chalk from 'chalk';
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
@@ -18,8 +19,15 @@ cloudinary.config({
 
 // File validators
 export const fileValidators = {
-  images: { validator: /^image\//, folder: 'images' },
-  videos: { validator: /^video\//, folder: 'videos' },
+  // images: { validator: /^image\//, folder: 'images' },
+  // videos: { validator: /^video\//, folder: 'videos' },
+  // media: { validator: /^(image|video)\//, folder: 'media' },
+  images: { validator: /^(image|application\/octet-stream)/, folder: 'images' },
+  videos: { validator: /^(video|application\/octet-stream)/, folder: 'videos' },
+  media: {
+    validator: /^(image|video|application\/octet-stream)/,
+    folder: 'media',
+  },
   audios: { validator: /^audio\//, folder: 'audios' },
   documents: { validator: /(pdf|word|excel|text)/, folder: 'docs' },
   any: { validator: /.*/, folder: 'others' },
@@ -99,14 +107,19 @@ const uploadToCloudinary = async (
   folder: string,
 ) => {
   return new Promise<string>((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result?.secure_url ?? '');
-      },
-    );
-    streamifier.createReadStream(file.buffer).pipe(stream);
+    try {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder, resource_type: 'auto' },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result?.secure_url ?? '');
+        },
+      );
+      streamifier.createReadStream(file.buffer).pipe(stream);
+    } catch (error) {
+      console.log(chalk.red('Cloudinary upload error:'), error);
+      // reject(error);
+    }
   });
 };
 

@@ -7,6 +7,7 @@ import { privacyRoutes } from '../app/modules/privacy/privacy.routes';
 import { aboutRoutes } from '../app/modules/aboutUs/aboutUs.route';
 import { tersmConditionRoutes } from '../app/modules/termsAndCondition/termsAndCondition.route';
 import { FollowerRoutes } from '../app/modules/follower/follower.route';
+import { PostRoute } from '../app/modules/post/post.route';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ const apiRoutes = [
   { path: '/privacy', route: privacyRoutes },
   { path: '/about', route: aboutRoutes },
   { path: '/terms', route: tersmConditionRoutes },
+  { path: '/post', route: PostRoute },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
