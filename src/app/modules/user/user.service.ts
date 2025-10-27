@@ -128,7 +128,10 @@ const searchUserByPhone = async (searchTerm: string, userId: string) => {
 
   if (searchTerm) {
     result = await User.find({
-      phone: { $regex: searchTerm, $options: 'i' },
+      $or: [
+        { phone: { $regex: searchTerm, $options: 'i' } },
+        { name: { $regex: searchTerm, $options: 'i' } },
+      ],
       _id: { $ne: userId },
     });
   } else {
