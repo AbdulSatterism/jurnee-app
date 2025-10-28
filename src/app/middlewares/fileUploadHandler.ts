@@ -117,8 +117,7 @@ const uploadToCloudinary = async (
       );
       streamifier.createReadStream(file.buffer).pipe(stream);
     } catch (error) {
-      console.log(chalk.red('Cloudinary upload error:'), error);
-      // reject(error);
+      errorLogger.error(chalk.red('Cloudinary upload error:'), error);
     }
   });
 };
