@@ -21,9 +21,10 @@ export interface IPost {
   endDate?: string;
 
   // for service posts
-  startingPrice?: number;
+  price?: number;
   schedule?: { day: WeekDay; startTime: string; endTime: string }[];
   category?: string;
+  subcategory?: string;
   serviceType?: string;
 
   // for alert posts
@@ -42,6 +43,7 @@ export interface IPost {
   licenses?: string;
   views?: number;
   likes?: number;
+  status?: 'PUBLISHED' | 'REJECTED';
 }
 
 /**

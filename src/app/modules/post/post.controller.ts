@@ -3,9 +3,9 @@ import catchAsync from '../../../shared/catchAsync';
 import { PostService } from './post.services';
 import sendResponse from '../../../shared/sendResponse';
 
-const createEvent = catchAsync(async (req, res) => {
+const createPost = catchAsync(async (req, res) => {
   const author = req.user.id;
-  const result = await PostService.createEvent(author, req.body);
+  const result = await PostService.createPost(author, req.body);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.CREATED,
@@ -15,5 +15,5 @@ const createEvent = catchAsync(async (req, res) => {
 });
 
 export const PostController = {
-  createEvent,
+  createPost,
 };

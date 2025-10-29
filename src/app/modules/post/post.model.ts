@@ -35,9 +35,10 @@ const postSchema = new Schema<IPost>(
     endDate: { type: String, default: null },
 
     // service posts
-    startingPrice: { type: Number, default: null },
+    price: { type: Number, default: null },
     schedule: { type: [scheduleSchema] },
     category: { type: String, default: null },
+    subcategory: { type: String, default: null },
     serviceType: { type: String, default: null },
 
     // alert posts
@@ -57,6 +58,11 @@ const postSchema = new Schema<IPost>(
     capacity: { type: Number, default: null },
     amenities: { type: [String], default: null },
     licenses: { type: String, default: null },
+    status: {
+      type: String,
+      enum: ['PUBLISHED', 'REJECTED'],
+      default: 'PUBLISHED',
+    },
   },
   { timestamps: true, versionKey: false },
 );
@@ -64,45 +70,3 @@ const postSchema = new Schema<IPost>(
 // Add 2dsphere index for geospatial queries
 postSchema.index({ location: '2dsphere' });
 export const Post = model('Post', postSchema);
-
-/*
-const postSchema = new Schema<IPost>(
-  {
-    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    image: { type: String },
-    media: { type: [String] },
-    title: { type: String },
-    description: { type: String },
-    startDate: { type: Date },
-    startTime: { type: String },
-    address: { type: String },
-    location: pointSchema,
-    hasTag: { type: [String] },
-
-    // deal posts
-    endDate: { type: String },
-
-    // service posts
-    startingPrice: { type: Number },
-    schedule: { type: [scheduleSchema] },
-    category: { type: String },
-    serviceType: { type: String },
-
-    // alert posts
-    missingName: { type: String },
-    missingAge: { type: Number },
-    clothingDescription: { type: String },
-    lastSeenLocation: pointSchema,
-    lastSeenDate: { type: Date },
-    contactInfo: { type: String },
-    expireLimit: { type: Number }, // in days
-    capacity: { type: Number },
-    amenities: { type: [String] },
-    licenses: { type: String },
-    views: { type: Number, default: 0 },
-    likes: { type: Number, default: 0 },
-  },
-  { timestamps: true },
-);
-
-*/

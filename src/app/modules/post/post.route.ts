@@ -16,7 +16,29 @@ router.post(
   }),
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   validateRequest(PostValidation.eventValidation),
-  PostController.createEvent,
+  PostController.createPost,
+);
+
+router.post(
+  '/deal',
+  fileUploader({
+    image: { fileType: 'images', size: 50 * 1024 * 1024, maxCount: 1 },
+    media: { fileType: 'media', size: 100 * 1024 * 1024, maxCount: 6 },
+  }),
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  validateRequest(PostValidation.dealValidation),
+  PostController.createPost,
+);
+
+router.post(
+  '/service/food-beverage',
+  fileUploader({
+    image: { fileType: 'images', size: 50 * 1024 * 1024, maxCount: 1 },
+    media: { fileType: 'media', size: 100 * 1024 * 1024, maxCount: 6 },
+  }),
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  validateRequest(PostValidation.serviceValidation),
+  PostController.createPost,
 );
 
 export const PostRoute = router;

@@ -4,7 +4,7 @@ import { User } from '../user/user.model';
 import { IPost } from './post.interface';
 import { Post } from './post.model';
 
-const createEvent = async (author: string, payload: IPost) => {
+const createPost = async (author: string, payload: IPost) => {
   const isExist = await User.findById(author);
   if (!isExist) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
@@ -26,5 +26,5 @@ const createEvent = async (author: string, payload: IPost) => {
 };
 
 export const PostService = {
-  createEvent,
+  createPost,
 };
