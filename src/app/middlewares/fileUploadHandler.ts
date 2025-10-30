@@ -19,11 +19,9 @@ cloudinary.config({
 
 // File validators
 export const fileValidators = {
-  // images: { validator: /^image\//, folder: 'images' },
-  // videos: { validator: /^video\//, folder: 'videos' },
-  // media: { validator: /^(image|video)\//, folder: 'media' },
   images: { validator: /^(image|application\/octet-stream)/, folder: 'images' },
   videos: { validator: /^(video|application\/octet-stream)/, folder: 'videos' },
+  licenses: { validator: /(pdf|word|excel|text)/, folder: 'licenses' },
   media: {
     validator: /^(image|video|application\/octet-stream)/,
     folder: 'media',
