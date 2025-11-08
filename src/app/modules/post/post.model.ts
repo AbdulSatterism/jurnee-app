@@ -63,10 +63,15 @@ const postSchema = new Schema<IPost>(
       enum: ['PUBLISHED', 'REJECTED'],
       default: 'PUBLISHED',
     },
+    boost: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false },
 );
 
 // Add 2dsphere index for geospatial queries
 postSchema.index({ location: '2dsphere' });
+
+postSchema.index({ category: 1 });
+postSchema.index({ title: 'text', description: 'text', hasTag: 'text' });
+
 export const Post = model('Post', postSchema);

@@ -44,79 +44,19 @@ export interface IPost {
   views?: number;
   likes?: number;
   status?: 'PUBLISHED' | 'REJECTED';
+  boost?: boolean;
 }
 
-/**
- * Event-specific post
- 
-export interface EventPost extends BasePost {
-  category: PostCategory.EVENT;
-  // schedule: either weekly schedule OR date ranges (one or more)
-  weeklySchedule?: WeeklyScheduleItem[]; // recurring schedule
-  dateRanges?: DateRange[]; // one-off events or multi-day events
-
-  venue?: {
-    name?: string;
-    address?: string;
-    geo?: GeoPoint;
-  };
-
-  attendingCount?: number;
-  attendeesPreview?: { userId: string; avatar?: string }[];
-
-  ticketUrl?: string;
-  bookingEnabled?: boolean;
-  totalBookings?: number;
+export interface IQuery {
+  page?: string;
+  limit?: string;
+  category?: string;
+  subcategory?: string;
+  search?: string;
+  date?: string; // "today" | "upcoming"
+  lat?: string;
+  lng?: string;
+  maxDistance?: string;
+  minPrice?: string;
+  maxPrice?: string;
 }
-
-/**
- * Service-specific post (e.g., DJ, plumber, photographer)
- 
-export interface ServicePost extends BasePost {
-  category: PostCategory.SERVICE;
-  // typical for services
-  hourlyRate?: number;
-  minBookingHours?: number;
-  availableSchedule?: WeeklyScheduleItem[]; // availability window
-  // qualifications/certifications
-  certifications?: string[];
-  rating?: number;
-  totalEarnings?: number;
-}
-
-/**
- * Deal / Offer post
-
-export interface DealPost extends BasePost {
-  category: PostCategory.DEAL;
-  discountPercent?: number;
-  validFrom?: string;
-  validUntil?: string;
-  terms?: string;
-  couponCode?: string;
-}
-
-/**
- * Food post (restaurant / menu / food delivery)
-
-export interface FoodPost extends BasePost {
-  category: PostCategory.FOOD;
-  menuUrl?: string;
-  openingHours?: WeeklyScheduleItem[];
-  rating?: number;
-  priceRange?: { min?: number; max?: number; currency?: string };
-}
-
-/**
- * Alert / Missing person / Emergency post
-
-export interface AlertPost extends BasePost {
-  category: PostCategory.ALERT;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  lastSeenGeo?: GeoPoint;
-  reward?: number;
-  isVerified?: boolean;
-  reporterContact?: { phone?: string; email?: string };
-}
-
-*/

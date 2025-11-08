@@ -11,7 +11,7 @@ import { Cache } from '../../../lib/cache';
 const createUser = catchAsync(async (req: Request, res: Response) => {
   await UserService.createUserFromDb(req.body);
 
-  await Cache.delByPattern('users:*');
+  // await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,
@@ -55,7 +55,7 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   const result = await UserService.updateProfileToDB(user, req.body);
 
-  await Cache.delByPattern('users:*');
+  // await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,
@@ -96,7 +96,7 @@ const searchByPhone = catchAsync(async (req: Request, res: Response) => {
 const deleteUser = catchAsync(async (req, res) => {
   const result = await UserService.deleteUser(req.user.id);
 
-  await Cache.delByPattern('users:*');
+  // await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,

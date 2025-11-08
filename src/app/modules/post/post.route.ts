@@ -97,4 +97,12 @@ router.post(
   PostController.createPost,
 );
 
+// Get all posts
+
+router.get(
+  '/all-post',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.getAllPosts,
+);
+
 export const PostRoute = router;
