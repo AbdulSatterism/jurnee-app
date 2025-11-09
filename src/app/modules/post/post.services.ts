@@ -161,7 +161,27 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   };
 };
 
+// post details and increase view count
+
+const postDetails = async (postId: string) => {
+  const post = await Post.findById(postId).populate(
+    'author attenders',
+    'image name -_id',
+  );
+
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'this service not found');
+  }
+
+  // Increase view count
+  post.views = (post.views ?? 0) + 1;
+  await post.save();
+
+  return post;
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
+  postDetails,
 };

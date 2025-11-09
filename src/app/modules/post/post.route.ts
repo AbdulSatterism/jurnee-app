@@ -105,4 +105,11 @@ router.get(
   PostController.getAllPosts,
 );
 
+// Get post details
+router.get(
+  '/details/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.postDetails,
+);
+
 export const PostRoute = router;

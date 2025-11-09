@@ -64,6 +64,7 @@ const postSchema = new Schema<IPost>(
       default: 'PUBLISHED',
     },
     boost: { type: Boolean, default: false },
+    attenders: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
   },
   { timestamps: true, versionKey: false },
 );

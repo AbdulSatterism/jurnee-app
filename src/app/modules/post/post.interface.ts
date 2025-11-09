@@ -45,6 +45,7 @@ export interface IPost {
   likes?: number;
   status?: 'PUBLISHED' | 'REJECTED';
   boost?: boolean;
+  attenders?: Types.ObjectId[];
 }
 
 export interface IQuery {

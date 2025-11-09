@@ -1,53 +1,54 @@
 /* eslint-disable no-console */
-import chalk from 'chalk';
 import { Server } from 'socket.io';
-import { logger } from '../shared/logger';
+import likeToggleSocket from '../app/modules/like/like.socket';
 
 const socket = (io: Server) => {
-  io.on('connection', socket => {
-    console.log('A user connected:', socket.id);
+  likeToggleSocket(io);
 
-    // Join a chat room
-    socket.on('join', roomId => {
-      socket.join(roomId);
-      console.log(`User joined room: ${roomId}`);
-    });
+  // io.on('connection', socket => {
+  // console.log('A user connected:', socket.id);
 
-    // socket.on('send-message', async ({ roomId, senderId, message }) => {
-    //   try {
-    //     // Save the message to the database
-    //     const newMessage = await Message.create({
-    //       roomId,
-    //       senderId,
-    //       message,
-    //     });
+  // // Join a chat room
+  // socket.on('join', roomId => {
+  //   socket.join(roomId);
+  //   console.log(`User joined room: ${roomId}`);
+  // });
 
-    //     // Populate the senderId field
-    //     const populatedMessage = await newMessage.populate(
-    //       'senderId',
-    //       'name email image',
-    //     );
+  // socket.on('send-message', async ({ roomId, senderId, message }) => {
+  //   try {
+  //     // Save the message to the database
+  //     const newMessage = await Message.create({
+  //       roomId,
+  //       senderId,
+  //       message,
+  //     });
 
-    //     // Emit the message to all users in the specified chat room
-    //     io.emit(`receive-message:${populatedMessage.roomId}`, populatedMessage);
-    //   } catch (error) {
-    //     console.error('Error sending message:', error);
-    //   }
-    // });
+  //     // Populate the senderId field
+  //     const populatedMessage = await newMessage.populate(
+  //       'senderId',
+  //       'name email image',
+  //     );
 
-    // // Listen for the chat-started event and emit to the specific room
-    // socket.on('chat-started', ({ chatRoom }) => {
-    //   io.to(chatRoom).emit(`chat-started:${chatRoom}`, {
-    //     chatRoom,
-    //     message: 'Chat started between the groups.',
-    //   });
-    // });
+  //     // Emit the message to all users in the specified chat room
+  //     io.emit(`receive-message:${populatedMessage.roomId}`, populatedMessage);
+  //   } catch (error) {
+  //     console.error('Error sending message:', error);
+  //   }
+  // });
 
-    // Handle disconnection
-    socket.on('disconnect', () => {
-      logger.info(chalk.red('A user disconnect'));
-    });
-  });
+  // // Listen for the chat-started event and emit to the specific room
+  // socket.on('chat-started', ({ chatRoom }) => {
+  //   io.to(chatRoom).emit(`chat-started:${chatRoom}`, {
+  //     chatRoom,
+  //     message: 'Chat started between the groups.',
+  //   });
+  // });
+
+  // Handle disconnection
+  // socket.on('disconnect', () => {
+  //   logger.info(chalk.red('A user disconnect'));
+  // });
+  // });
 };
 
 export default socket;
