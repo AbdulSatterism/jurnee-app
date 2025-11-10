@@ -8,6 +8,8 @@ import { aboutRoutes } from '../app/modules/aboutUs/aboutUs.route';
 import { tersmConditionRoutes } from '../app/modules/termsAndCondition/termsAndCondition.route';
 import { FollowerRoutes } from '../app/modules/follower/follower.route';
 import { PostRoute } from '../app/modules/post/post.route';
+import { LikeRoutes } from '../app/modules/like/like.route';
+import { SavedRoutes } from '../app/modules/saved/saved.route';
 
 const router = express.Router();
 
@@ -22,6 +24,8 @@ const apiRoutes = [
   { path: '/about', route: aboutRoutes },
   { path: '/terms', route: tersmConditionRoutes },
   { path: '/post', route: PostRoute },
+  { path: '/like', route: LikeRoutes },
+  { path: '/save', route: SavedRoutes },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

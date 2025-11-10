@@ -32,7 +32,8 @@ const getAllPosts = catchAsync(async (req, res) => {
 
 const postDetails = catchAsync(async (req, res) => {
   const postId = req.params.id;
-  const result = await PostService.postDetails(postId);
+  const userId = req.user.id;
+  const result = await PostService.postDetails(postId, userId);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,

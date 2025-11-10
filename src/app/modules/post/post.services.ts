@@ -5,6 +5,7 @@ import { User } from '../user/user.model';
 import { IPost, IQuery } from './post.interface';
 import { Post } from './post.model';
 import { FilterQuery } from 'mongoose';
+import { Saved } from '../saved/saved.model';
 
 const createPost = async (author: string, payload: IPost) => {
   const isExist = await User.findById(author);
@@ -163,7 +164,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
 
 // post details and increase view count
 
-const postDetails = async (postId: string) => {
+const postDetails = async (postId: string, userId: string) => {
   const post = await Post.findById(postId).populate(
     'author attenders',
     'image name -_id',
@@ -173,11 +174,12 @@ const postDetails = async (postId: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'this service not found');
   }
 
-  // Increase view count
-  post.views = (post.views ?? 0) + 1;
-  await post.save();
+  const savedPost = await Saved.findOne({ userId, postId });
 
-  return post;
+  post.isSaved = !!savedPost;
+
+  post.views = (post.views ?? 0) + 1;
+  return post.save();
 };
 
 export const PostService = {

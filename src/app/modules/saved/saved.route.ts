@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { LikeController } from './like.controller';
+import { SavedController } from './saved.controller';
 import auth from '../../middlewares/auth';
 import { USER_ROLES } from '../../../enums/user';
 
 const router = Router();
 
 router.post(
-  '/like-toggle',
+  '/save-toggle',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
-  LikeController.likeToggle,
+  SavedController.savedToggle,
 );
 
-export const LikeRoutes = router;
+export const SavedRoutes = router;

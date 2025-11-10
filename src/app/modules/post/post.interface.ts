@@ -46,6 +46,7 @@ export interface IPost {
   status?: 'PUBLISHED' | 'REJECTED';
   boost?: boolean;
   attenders?: Types.ObjectId[];
+  isSaved?: boolean;
 }
 
 export interface IQuery {

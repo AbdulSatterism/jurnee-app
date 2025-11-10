@@ -1,7 +1,7 @@
 import { model, Schema } from 'mongoose';
-import { ILike } from './like.interface';
+import { ISaved } from './saved.interface';
 
-const likeSchema = new Schema<ILike>(
+const savedSchema = new Schema<ISaved>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
@@ -9,6 +9,6 @@ const likeSchema = new Schema<ILike>(
   { timestamps: true, versionKey: false },
 );
 
-likeSchema.index({ userId: 1, postId: 1 }, { unique: true });
+savedSchema.index({ userId: 1, postId: 1 }, { unique: true });
 
-export const Like = model('Like', likeSchema);
+export const Saved = model('Saved', savedSchema);
