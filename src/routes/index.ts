@@ -10,6 +10,7 @@ import { FollowerRoutes } from '../app/modules/follower/follower.route';
 import { PostRoute } from '../app/modules/post/post.route';
 import { LikeRoutes } from '../app/modules/like/like.route';
 import { SavedRoutes } from '../app/modules/saved/saved.route';
+import { ReportRoutes } from '../app/modules/report/report.route';
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ const apiRoutes = [
   { path: '/post', route: PostRoute },
   { path: '/like', route: LikeRoutes },
   { path: '/save', route: SavedRoutes },
+  { path: '/report', route: ReportRoutes },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
