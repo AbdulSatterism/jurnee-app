@@ -11,4 +11,8 @@ router.post(
   ReportController.createReport,
 );
 
+router.get('/', auth(USER_ROLES.ADMIN), ReportController.getAllReports);
+
+router.get('/:id', auth(USER_ROLES.ADMIN), ReportController.getReportDetails);
+
 export const ReportRoutes = router;

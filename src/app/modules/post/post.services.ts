@@ -111,7 +111,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
         ]
       : [];
 
-  //  Main pipeline
+  // Main aggregation pipeline
   const pipeline: any[] = [
     ...geoNearStage,
     { $match: filter },
@@ -120,9 +120,30 @@ const getAllPosts = async (query: IQuery, userId: string) => {
         boostPriority: { $cond: [{ $eq: ['$boost', true] }, 1, 0] },
       },
     },
+    // Join with the Review collection to calculate average rating
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'reviews',
+      },
+    },
+    {
+      $addFields: {
+        averageRating: { $avg: '$reviews.rating' }, // Calculate average rating
+        reviewsCount: { $size: '$reviews' }, // Count the number of reviews
+      },
+    },
+    {
+      $project: {
+        reviews: 0,
+      },
+    },
+
     {
       $sort: {
-        boostPriority: -1, // boosted first
+        boostPriority: -1, // boosted posts first
         likes: -1,
         views: -1,
         createdAt: -1,

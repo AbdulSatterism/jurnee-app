@@ -11,6 +11,7 @@ import { PostRoute } from '../app/modules/post/post.route';
 import { LikeRoutes } from '../app/modules/like/like.route';
 import { SavedRoutes } from '../app/modules/saved/saved.route';
 import { ReportRoutes } from '../app/modules/report/report.route';
+import { ReviewRoutes } from '../app/modules/review/review.route';
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ const apiRoutes = [
   { path: '/like', route: LikeRoutes },
   { path: '/save', route: SavedRoutes },
   { path: '/report', route: ReportRoutes },
+  { path: '/review', route: ReviewRoutes },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
