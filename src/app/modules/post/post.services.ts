@@ -186,9 +186,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
 };
 
 const postDetails = async (postId: string, userId: string) => {
-  // First, fetch post details using aggregation to get necessary fields like reviews, author, and attenders
   const post = await Post.aggregate([
-    // Match the post by its ID
     { $match: { _id: new mongoose.Types.ObjectId(postId) } },
 
     // Lookup author details from 'users' collection
@@ -214,7 +212,7 @@ const postDetails = async (postId: string, userId: string) => {
       },
     },
 
-    // Join reviews collection and calculate the average rating and review count
+    // Join reviews collection and calculate
     {
       $lookup: {
         from: 'reviews',
@@ -236,7 +234,7 @@ const postDetails = async (postId: string, userId: string) => {
       },
     },
 
-    // Remove the reviews field as it's no longer necessary in the output
+    // Remove the review
     { $project: { reviews: 0 } },
 
     // Project necessary fields to return in the final result

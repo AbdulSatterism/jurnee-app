@@ -14,7 +14,7 @@ router.post(
 router.get(
   '/post-reviews/:postId',
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  ReviewController.getReviewsByPostId,
+  ReviewController.allReviewsByPostId,
 );
 
 export const ReviewRoutes = router;

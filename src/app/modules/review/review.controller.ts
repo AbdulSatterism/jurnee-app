@@ -3,18 +3,6 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { ReviewServices } from './review.services';
 
-// const createReport = catchAsync(async (req, res) => {
-//   const userId = req.user.id;
-//   const result = await ReportService.createReport(userId, req.body);
-
-//   sendResponse(res, {
-//     success: true,
-//     statusCode: StatusCodes.CREATED,
-//     message: 'Report created successfully',
-//     data: result,
-//   });
-// });
-
 const createReview = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const result = await ReviewServices.createReview(userId, req.body);
@@ -26,13 +14,13 @@ const createReview = catchAsync(async (req, res) => {
   });
 });
 
-const getReviewsByPostId = catchAsync(async (req, res) => {
+const allReviewsByPostId = catchAsync(async (req, res) => {
   const postId = req.params.postId;
-  const result = await ReviewServices.getReviewsByPostId(postId, req.query);
+  const result = await ReviewServices.allReviewsByPostId(postId, req.query);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'Reviews retrieved successfully',
+    message: 'All reviews retrieved successfully',
     meta: {
       page: Number(result.meta.page),
       limit: Number(result.meta.limit),
@@ -45,5 +33,5 @@ const getReviewsByPostId = catchAsync(async (req, res) => {
 
 export const ReviewController = {
   createReview,
-  getReviewsByPostId,
+  allReviewsByPostId,
 };
