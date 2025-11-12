@@ -47,6 +47,7 @@ export interface IPost {
   boost?: boolean;
   attenders?: Types.ObjectId[];
   isSaved?: boolean;
+  totalSaved?: number;
 }
 
 export interface IQuery {

@@ -9,6 +9,4 @@ const savedSchema = new Schema<ISaved>(
   { timestamps: true, versionKey: false },
 );
 
-savedSchema.index({ userId: 1, postId: 1 }, { unique: true });
-
 export const Saved = model('Saved', savedSchema);

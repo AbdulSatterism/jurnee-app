@@ -4,7 +4,7 @@ import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { IPost, IQuery } from './post.interface';
 import { Post } from './post.model';
-import { FilterQuery } from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 import { Saved } from '../saved/saved.model';
 
 const createPost = async (author: string, payload: IPost) => {
@@ -172,6 +172,8 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     });
   }
 
+  await Post.updateMany({}, { $set: { totalSaved: 0 } });
+
   return {
     data: posts,
     meta: {
@@ -183,24 +185,107 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   };
 };
 
-// post details and increase view count
-
 const postDetails = async (postId: string, userId: string) => {
-  const post = await Post.findById(postId).populate(
-    'author attenders',
-    'image name -_id',
-  );
+  // First, fetch post details using aggregation to get necessary fields like reviews, author, and attenders
+  const post = await Post.aggregate([
+    // Match the post by its ID
+    { $match: { _id: new mongoose.Types.ObjectId(postId) } },
 
-  if (!post) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'this service not found');
+    // Lookup author details from 'users' collection
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'author',
+        foreignField: '_id',
+        as: 'author',
+      },
+    },
+    {
+      $unwind: { path: '$author', preserveNullAndEmptyArrays: true }, // Unwind author to get a single object
+    },
+
+    // Lookup attenders details from 'users' collection
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'attenders',
+        foreignField: '_id',
+        as: 'attenders',
+      },
+    },
+
+    // Join reviews collection and calculate the average rating and review count
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'reviews',
+      },
+    },
+    {
+      $addFields: {
+        averageRating: {
+          $cond: [
+            { $gt: [{ $size: '$reviews' }, null] },
+            { $avg: '$reviews.rating' },
+            null,
+          ],
+        },
+        reviewsCount: { $size: '$reviews' },
+      },
+    },
+
+    // Remove the reviews field as it's no longer necessary in the output
+    { $project: { reviews: 0 } },
+
+    // Project necessary fields to return in the final result
+    {
+      $project: {
+        'author.name': 1,
+        'author.image': 1,
+        'attenders.name': 1,
+        'attenders.image': 1,
+        title: 1,
+        description: 1,
+        location: 1,
+        address: 1,
+        views: 1,
+        likes: 1,
+        price: 1,
+        category: 1,
+        subcategory: 1,
+        amenities: 1,
+        schedule: 1,
+        startDate: 1,
+        endDate: 1,
+        isSaved: 1,
+        averageRating: 1,
+        reviewsCount: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        totalSaved: 1,
+      },
+    },
+  ]);
+
+  if (post.length === 0) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'This service not found');
   }
 
+  const updatedPost = post[0];
+
   const savedPost = await Saved.findOne({ userId, postId });
+  updatedPost.isSaved = savedPost ? true : false;
 
-  post.isSaved = !!savedPost;
+  updatedPost.views = (updatedPost.views ?? 0) + 1;
 
-  post.views = (post.views ?? 0) + 1;
-  return post.save();
+  await Post.updateOne(
+    { _id: postId },
+    { $set: { views: updatedPost.views, isSaved: updatedPost.isSaved } },
+  );
+
+  return updatedPost;
 };
 
 export const PostService = {

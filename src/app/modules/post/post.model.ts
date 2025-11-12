@@ -66,6 +66,7 @@ const postSchema = new Schema<IPost>(
     boost: { type: Boolean, default: false },
     attenders: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
     isSaved: { type: Boolean, default: false },
+    totalSaved: { type: Number, default: 0 },
   },
   { timestamps: true, versionKey: false },
 );

@@ -9,6 +9,4 @@ const likeSchema = new Schema<ILike>(
   { timestamps: true, versionKey: false },
 );
 
-likeSchema.index({ userId: 1, postId: 1 }, { unique: true });
-
 export const Like = model('Like', likeSchema);
