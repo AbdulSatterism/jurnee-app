@@ -22,7 +22,12 @@ export interface IPost {
 
   // for service posts
   price?: number;
-  schedule?: { day: WeekDay; startTime: string; endTime: string }[];
+  schedule?: {
+    day: WeekDay;
+    startTime: string;
+    endTime: string;
+    available?: boolean;
+  }[];
   category?: string;
   subcategory?: string;
   serviceType?: string;

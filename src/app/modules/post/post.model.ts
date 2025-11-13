@@ -9,6 +9,7 @@ const scheduleSchema = new Schema({
   },
   startTime: { type: String, required: false },
   endTime: { type: String, required: false },
+  available: { type: Boolean, default: true },
 });
 
 const postSchema = new Schema<IPost>(
