@@ -1,0 +1,13 @@
+import { model, Schema } from 'mongoose';
+import { IMessage } from './message.interface';
+
+const messageSchema = new Schema<IMessage>(
+  {
+    chat: { type: Schema.Types.ObjectId, ref: 'Chat', required: true },
+    sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    message: { type: String, default: '' },
+  },
+  { timestamps: true, versionKey: false },
+);
+
+export const Message = model<IMessage>('Message', messageSchema);

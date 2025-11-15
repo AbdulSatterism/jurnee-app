@@ -1,13 +1,20 @@
 import { model, Schema } from 'mongoose';
-import { TNotification } from './notifications.interface';
+import { INotification } from './notifications.interface';
 
-const notificationSchema = new Schema<TNotification>(
+const notificationSchema = new Schema<INotification>(
   {
-    message: {
+    content: {
       type: String,
     },
-    patientName: {
-      type: String,
+    senderId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    receiverId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
   },
   {
@@ -15,7 +22,7 @@ const notificationSchema = new Schema<TNotification>(
   },
 );
 
-export const Notification = model<TNotification>(
+export const Notification = model<INotification>(
   'Notification',
   notificationSchema,
 );
