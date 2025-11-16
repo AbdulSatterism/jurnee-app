@@ -1,102 +1,73 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
+import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { Notification } from './notifications.model';
-import mongoose from 'mongoose';
-import AppError from '../../errors/AppError';
 
-const getAllNotification = async () => {
-  const result = await Notification.find();
+// const updatePrivacy = async (payload: TPrivacy) => {
+//   const result = await Privacy.findOneAndUpdate(
+//     {},
+//     { description: payload.description },
+//     { new: true },
+//   );
 
-  const count = await Notification.countDocuments();
+//   return result;
+// };
 
-  const data = {
-    result,
-    count,
-  };
+// get all notification base on receiverId
 
-  return data;
-};
+const allNotificationBySpecificUser = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
 
-const getReceiverGroupNotification = async (groupId: string) => {
-  const result = await Notification.find({ receiverGroupId: groupId });
-
-  const count = await Notification.countDocuments();
-
-  const data = {
-    result,
-    count,
-  };
-
-  return data;
-};
-
-const getUserNotification = async (userId: string) => {
-  const existUser = await User.findById(userId);
-
-  if (!existUser) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'this user not found');
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
   }
-  const userIdObjectId = new mongoose.Types.ObjectId(userId);
-  // Aggregation pipeline
-  const notifications = await Notification.aggregate([
-    // Step 1: Lookup to join the Group collection
-    {
-      $lookup: {
-        from: 'groups', // Name of the Group collection
-        localField: 'receiverGroupId', // Field in Notification
-        foreignField: '_id', // Field in Group
-        as: 'receiverGroup', // Name for the joined data
-      },
-    },
-    // Step 2: Unwind the receiverGroup array
-    {
-      $unwind: '$receiverGroup',
-    },
-    // Step 3: Match notifications where the user exists in receiverGroup.invite[]
-    {
-      $match: {
-        'receiverGroup.invite': userIdObjectId, // Check if userId exists in the invite array
-      },
-    },
-    // Step 4: Lookup to populate user details
-    {
-      $lookup: {
-        from: 'users', // Name of the User collection
-        localField: 'userId', // Field in Notification
-        foreignField: '_id', // Field in User
-        as: 'user', // Name for the joined data
-      },
-    },
-    // Step 5: Unwind the user array
-    {
-      $unwind: {
-        path: '$user',
-        preserveNullAndEmptyArrays: true, // Handle cases where userId might not exist
-      },
-    },
-    // Step 6: Project fields for notification
-    {
-      $project: {
-        _id: 1,
-        senderGroupId: 1,
-        receiverGroupId: 1,
-        invitationId: 1,
-        'receiverGroup.name': 1, // Include the group name
-        'user._id': 1,
-        'user.name': 1,
-        'user.email': 1,
-        createdAt: 1,
-        updatedAt: 1,
-      },
-    },
+
+  const [notifications, total] = await Promise.all([
+    Notification.find({ receiverId: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Notification.countDocuments({ receiverId: userId }),
   ]);
 
-  return notifications;
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: notifications,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+const singleNotification = async (notificationId: string) => {
+  const notification = await Notification.findById(notificationId);
+  if (!notification) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Notification not found');
+  }
+
+  // update also notification status which is false make it true
+
+  const result = await Notification.findByIdAndUpdate(notificationId, {
+    read: true,
+  });
+
+  return result;
 };
 
 export const NotificationService = {
-  getAllNotification,
-  getUserNotification,
-  getReceiverGroupNotification,
+  allNotificationBySpecificUser,
+  singleNotification,
 };

@@ -4,4 +4,5 @@ export interface INotification {
   senderId: Types.ObjectId;
   receiverId: Types.ObjectId;
   content?: string;
+  read?: boolean;
 }

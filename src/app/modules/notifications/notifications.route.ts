@@ -7,44 +7,14 @@ const router = express.Router();
 
 router.get(
   '/',
-  auth(USER_ROLES.ADMIN),
-  NotificationController.getAllNotification,
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  NotificationController.allNotificationBySpecificUser,
 );
 
-// router.get(
-//   '/user-notification',
-//   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
-//   NotificationController.getUserNotification,
-// );
-
-// router.get(
-//   '/group-notification/:groupId',
-//   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
-//   NotificationController.getGroupReceiverNotification,
-// );
-
-// router.patch(
-//   '/',
-//   auth(USER_ROLES.USER),
-//   NotificationController.readNotification,
-// );
-
-// router.get(
-//   '/admin',
-//   auth(USER_ROLES.ADMIN),
-//   NotificationController.adminNotificationFromDB,
-// );
-
-// router.patch(
-//   '/admin',
-//   auth(USER_ROLES.ADMIN),
-//   NotificationController.adminReadNotification,
-// );
-
-// router.delete(
-//   '/delete-all',
-//   auth(USER_ROLES.ADMIN),
-//   NotificationController.deleteAllNotifications,
-// );
+router.get(
+  '/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  NotificationController.singleNotification,
+);
 
 export const NotificationRoutes = router;

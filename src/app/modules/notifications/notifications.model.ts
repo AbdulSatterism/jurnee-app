@@ -16,6 +16,10 @@ const notificationSchema = new Schema<INotification>(
       ref: 'User',
       required: true,
     },
+    read: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -12,6 +12,7 @@ const toggleSaved = async (userId: string, postId: string) => {
 
   const result = await Saved.create({ userId, postId });
   await Post.findByIdAndUpdate(postId, { $inc: { totalSaved: 1 } });
+
   return result;
 };
 
