@@ -6,6 +6,7 @@ const messageSchema = new Schema<IMessage>(
     chat: { type: Schema.Types.ObjectId, ref: 'Chat', required: true },
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     message: { type: String, default: '' },
+    read: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false },
 );

@@ -11,4 +11,22 @@ router.post(
   ChatController.createPrivateChat,
 );
 
+router.get(
+  '/',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  ChatController.chatListWithLastMessage,
+);
+
+router.get(
+  '/inbox/:chatId',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  ChatController.getChatInboxMessages,
+);
+
+router.delete(
+  '/:messageId',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  ChatController.deleteInboxMessage,
+);
+
 export const ChatRoutes = router;

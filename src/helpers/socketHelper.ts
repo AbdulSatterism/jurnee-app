@@ -1,54 +1,59 @@
 /* eslint-disable no-console */
 import { Server } from 'socket.io';
-import likeToggleSocket from '../app/modules/like/like.socket';
+import { Message } from '../app/modules/message/message.model';
+import { logger } from '../shared/logger';
+import AppError from '../app/errors/AppError';
+import { StatusCodes } from 'http-status-codes';
+import chalk from 'chalk';
 
 const socket = (io: Server) => {
-  likeToggleSocket(io);
+  io.on('connection', socket => {
+    console.log('A user connected:', socket.id);
 
-  // io.on('connection', socket => {
-  // console.log('A user connected:', socket.id);
+    // Join a chat room
+    socket.on('join', chat => {
+      socket.join(chat);
+      console.log(`User joined room: ${chat}`);
+    });
 
-  // // Join a chat room
-  // socket.on('join', roomId => {
-  //   socket.join(roomId);
-  //   console.log(`User joined room: ${roomId}`);
-  // });
+    socket.on(
+      'send-message',
+      async (payload: { chat: string; sender: string; message?: string }) => {
+        try {
+          const { chat, sender, message } = payload;
 
-  // socket.on('send-message', async ({ roomId, senderId, message }) => {
-  //   try {
-  //     // Save the message to the database
-  //     const newMessage = await Message.create({
-  //       roomId,
-  //       senderId,
-  //       message,
-  //     });
+          if (!chat || !sender) throw new Error('chat and sender are required');
 
-  //     // Populate the senderId field
-  //     const populatedMessage = await newMessage.populate(
-  //       'senderId',
-  //       'name email image',
-  //     );
+          // Create message in DB
+          const newMessage = await Message.create({
+            chat,
+            sender,
+            message,
+          });
 
-  //     // Emit the message to all users in the specified chat room
-  //     io.emit(`receive-message:${populatedMessage.roomId}`, populatedMessage);
-  //   } catch (error) {
-  //     console.error('Error sending message:', error);
-  //   }
-  // });
+          const populatedMessage = await Message.findById(
+            newMessage._id,
+          ).populate('sender', 'name image _id');
 
-  // // Listen for the chat-started event and emit to the specific room
-  // socket.on('chat-started', ({ chatRoom }) => {
-  //   io.to(chatRoom).emit(`chat-started:${chatRoom}`, {
-  //     chatRoom,
-  //     message: 'Chat started between the groups.',
-  //   });
-  // });
+          // Join chat room and emit
+          socket.join(chat);
+          io.emit(`receive-message:${chat}`, populatedMessage);
+          socket.emit('receive-message', populatedMessage);
+        } catch (error) {
+          logger.error('Error in send-message:', error);
+          socket.emit(
+            'error',
+            new AppError(StatusCodes.BAD_REQUEST, (error as Error).message),
+          );
+        }
+      },
+    );
 
-  // Handle disconnection
-  // socket.on('disconnect', () => {
-  //   logger.info(chalk.red('A user disconnect'));
-  // });
-  // });
+    // Handle disconnection
+    socket.on('disconnect', () => {
+      logger.info(chalk.red('A user disconnect'));
+    });
+  });
 };
 
 export default socket;

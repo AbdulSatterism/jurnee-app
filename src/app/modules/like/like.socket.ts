@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import chalk from 'chalk';
 import { logger } from '../../../shared/logger';
 import { Like } from './like.model';
