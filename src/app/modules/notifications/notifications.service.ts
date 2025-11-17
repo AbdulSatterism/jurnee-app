@@ -4,18 +4,6 @@ import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { Notification } from './notifications.model';
 
-// const updatePrivacy = async (payload: TPrivacy) => {
-//   const result = await Privacy.findOneAndUpdate(
-//     {},
-//     { description: payload.description },
-//     { new: true },
-//   );
-
-//   return result;
-// };
-
-// get all notification base on receiverId
-
 const allNotificationBySpecificUser = async (
   userId: string,
   query: Record<string, unknown>,
@@ -67,7 +55,27 @@ const singleNotification = async (notificationId: string) => {
   return result;
 };
 
+const deleteNotification = async (userId: string, notificationId: string) => {
+  const notification = await Notification.findById(notificationId);
+  if (!notification) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Notification not found');
+  }
+
+  //
+
+  if (notification.receiverId.toString() !== userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not allowed to delete this notification',
+    );
+  }
+
+  const result = await Notification.findByIdAndDelete(notificationId);
+  return result;
+};
+
 export const NotificationService = {
   allNotificationBySpecificUser,
   singleNotification,
+  deleteNotification,
 };

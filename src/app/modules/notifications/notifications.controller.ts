@@ -32,7 +32,21 @@ const singleNotification = catchAsync(async (req, res) => {
   });
 });
 
+const deleteNotification = catchAsync(async (req, res) => {
+  const result = await NotificationService.deleteNotification(
+    req.user.id,
+    req.params.id,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Notification deleted successfully',
+    data: result,
+  });
+});
+
 export const NotificationController = {
   allNotificationBySpecificUser,
   singleNotification,
+  deleteNotification,
 };

@@ -286,8 +286,94 @@ const postDetails = async (postId: string, userId: string) => {
   return updatedPost;
 };
 
+// attend in the event in this field =>  attenders?: Types.ObjectId[];
+
+const joinEvent = async (userId: string, postId: string) => {
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  // also check category if not category; throw new AppError('Event');
+
+  if (post.category?.toLowerCase() !== 'event') {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'only able to join in the event',
+    );
+  }
+
+  // also check user id != author
+  if (post.author.toString() === userId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'You cannot join your own event',
+    );
+  }
+
+  const id = new mongoose.Types.ObjectId(userId);
+
+  if (post?.attenders?.includes(id)) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'User already joined the event',
+    );
+  }
+
+  if (!post.attenders) {
+    post.attenders = [];
+  }
+
+  post.attenders.push(id);
+  await post.save();
+
+  return post;
+};
+
+// my join events
+
+const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const [post, total] = await Promise.all([
+    Post.find({ attenders: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ attenders: userId }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: post,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
   postDetails,
+  joinEvent,
+  myJoinEvents,
 };

@@ -8,6 +8,8 @@ import fileUploader from '../../middlewares/fileUploadHandler';
 
 const router = Router();
 
+//! event
+
 router.post(
   '/event',
   fileUploader({
@@ -17,6 +19,20 @@ router.post(
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   validateRequest(PostValidation.eventValidation),
   PostController.createPost,
+);
+
+// join in the event
+router.post(
+  '/event/join/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.joinEvent,
+);
+// my join events
+
+router.get(
+  '/my-join-event',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.myJoinEvent,
 );
 
 router.post(
