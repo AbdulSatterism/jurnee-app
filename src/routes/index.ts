@@ -13,6 +13,7 @@ import { SavedRoutes } from '../app/modules/saved/saved.route';
 import { ReportRoutes } from '../app/modules/report/report.route';
 import { ReviewRoutes } from '../app/modules/review/review.route';
 import { ChatRoutes } from '../app/modules/chat/chat.route';
+import { supportRoutes } from '../app/modules/support/support.route';
 
 const router = express.Router();
 
@@ -32,6 +33,7 @@ const apiRoutes = [
   { path: '/report', route: ReportRoutes },
   { path: '/review', route: ReviewRoutes },
   { path: '/chat', route: ChatRoutes },
+  { path: '/support', route: supportRoutes },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
