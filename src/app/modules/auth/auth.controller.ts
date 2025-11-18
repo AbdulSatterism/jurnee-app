@@ -133,6 +133,17 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const appleLogin = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.appleLogin(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User login successfully via Apple',
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -143,4 +154,5 @@ export const AuthController = {
   newAccessToken,
   resendVerificationEmail,
   googleLogin,
+  appleLogin,
 };

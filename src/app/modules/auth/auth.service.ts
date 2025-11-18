@@ -22,6 +22,7 @@ import { ResetToken } from '../resetToken/resetToken.model';
 import AppError from '../../errors/AppError';
 import unlinkFile from '../../../shared/unlinkFile';
 import { downloadImage, facebookToken } from './auth.lib';
+import { verifyAppleToken } from '../../../helpers/appleLoginHelper';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -441,6 +442,84 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
   };
 };
 
+const appleLogin = async (payload: { token: string }) => {
+  if (!payload.token)
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Apple token is required');
+
+  try {
+    // Step 1 — Verify Apple ID token
+    const appleData = await verifyAppleToken(payload.token);
+
+    if (!appleData?.email) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Unable to retrieve email from Apple account',
+      );
+    }
+
+    // Step 2 — Prepare user fields
+    const userFields = {
+      name: appleData.name || '',
+      email: appleData.email,
+      appleId: appleData.sub,
+      role: 'USER' as const,
+      verified: true,
+    };
+
+    // Step 3 — Find or create user
+    let user = await User.findOne({
+      $or: [{ email: appleData.email }, { appleId: appleData.sub }],
+    });
+
+    if (!user) {
+      user = await User.create(userFields);
+    } else if (!user.appleId) {
+      user = await User.findByIdAndUpdate(
+        user._id,
+        { ...userFields, name: userFields.name || user.name },
+        { new: true },
+      );
+    }
+
+    if (!user) {
+      throw new AppError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Failed to create or update user',
+      );
+    }
+
+    // Step 4 — Generate access & refresh tokens
+    const tokenPayload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      jwtHelper.createToken(
+        tokenPayload,
+        config.jwt.jwt_secret as Secret,
+        config.jwt.jwt_expire_in as string,
+      ),
+      jwtHelper.createToken(
+        tokenPayload,
+        config.jwt.jwtRefreshSecret as Secret,
+        config.jwt.jwtRefreshExpiresIn as string,
+      ),
+    ]);
+
+    // Step 5 — Prepare response
+    const { password, authentication, ...userObject } = user.toObject();
+    return { user: userObject, accessToken, refreshToken };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Error processing Apple login',
+    );
+  }
+};
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -451,4 +530,5 @@ export const AuthService = {
   newAccessTokenToUser,
   resendVerificationEmailToDB,
   googleLogin,
+  appleLogin,
 };
