@@ -11,4 +11,10 @@ router.post(
   SavedController.savedToggle,
 );
 
+router.get(
+  '/my-saved-post',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  SavedController.mySavedPost,
+);
+
 export const SavedRoutes = router;

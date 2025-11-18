@@ -128,4 +128,17 @@ router.get(
   PostController.postDetails,
 );
 
+// get individual author post
+router.get(
+  '/my-post',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.myPost,
+);
+
+router.patch(
+  '/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.updatePost,
+);
+
 export const PostRoute = router;

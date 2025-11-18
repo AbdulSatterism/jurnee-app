@@ -335,6 +335,31 @@ const joinEvent = async (userId: string, postId: string) => {
   return post;
 };
 
+// update post by the author
+
+const updatePost = async (
+  userId: string,
+  postId: string,
+  payload: Partial<IPost>,
+) => {
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  if (post.author.toString() !== userId) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'You cannot update this post');
+  }
+
+  const updatedPost = await Post.findOneAndUpdate(
+    { _id: postId },
+    { $set: payload },
+    { new: true },
+  );
+
+  return updatedPost;
+};
+
 // my join events
 
 const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
@@ -350,11 +375,47 @@ const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
 
   const [post, total] = await Promise.all([
     Post.find({ attenders: userId })
+      .populate('attenders', 'name image -_id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
       .lean(),
     Post.countDocuments({ attenders: userId }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: post,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+// my post
+
+const myPost = async (userId: string, query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const [post, total] = await Promise.all([
+    Post.find({ author: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ author: userId }),
   ]);
 
   const totalPage = Math.ceil(total / size);
@@ -376,4 +437,6 @@ export const PostService = {
   postDetails,
   joinEvent,
   myJoinEvents,
+  myPost,
+  updatePost,
 };
