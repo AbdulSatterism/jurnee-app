@@ -66,6 +66,14 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       enum: ['MALE', 'FEMALE', 'OTHERS'],
     },
+    follower: {
+      type: Number,
+      default: 0,
+    },
+    following: {
+      type: Number,
+      default: 0,
+    },
 
     isDeleted: {
       type: Boolean,

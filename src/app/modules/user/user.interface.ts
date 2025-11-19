@@ -18,6 +18,8 @@ export type IUser = {
   verified: boolean;
   address?: string;
   post?: number;
+  follower?: number;
+  following?: number;
   location: {
     type: string;
     coordinates: [longtitude: number, latitude: number];
