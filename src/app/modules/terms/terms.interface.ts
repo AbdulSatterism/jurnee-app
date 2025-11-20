@@ -1,3 +1,3 @@
-export type TSetting = {
+export type TTerms = {
   description: string;
 };

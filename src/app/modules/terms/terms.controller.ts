@@ -4,48 +4,48 @@ import { NextFunction, Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import { StatusCodes } from 'http-status-codes';
 import sendResponse from '../../../shared/sendResponse';
-import { settingServices } from './setting.service';
+import { termsServices } from './terms.service';
 
-const createSetting = catchAsync(
+const createTerms = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await settingServices.createSetting(req.body);
+    const result = await termsServices.createTerms(req.body);
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'setting created succefully',
+      message: 'terms created succefully',
       data: result,
     });
   },
 );
-const getAllSetting = catchAsync(
+const getAllTerms = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await settingServices.getAllSetting();
+    const result = await termsServices.getAllTerms();
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'setting retrieve succefully',
-      data: result,
-    });
-  },
-);
-
-const updateSetting = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const result = await settingServices.updateSetting(req.body);
-
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: 'setting updated succefully',
+      message: 'terms retrieve succefully',
       data: result,
     });
   },
 );
 
-export const settingControllers = {
-  createSetting,
-  updateSetting,
-  getAllSetting,
+const updateTerms = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await termsServices.updateTerms(req.body);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: 'terms updated succefully',
+      data: result,
+    });
+  },
+);
+
+export const TermsControllers = {
+  createTerms,
+  getAllTerms,
+  updateTerms,
 };
