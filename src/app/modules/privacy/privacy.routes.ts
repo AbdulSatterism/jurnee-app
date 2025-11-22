@@ -9,7 +9,7 @@ import { privacyControllers } from './privacy.controller';
 const router = express.Router();
 
 router.post(
-  '/create-privacy',
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(privacyValidations.createPrivacyValidation),
   privacyControllers.createPrivacy,
@@ -17,8 +17,8 @@ router.post(
 
 router.get('/', privacyControllers.getAllPrivacy);
 
-router.post(
-  '/update-privacy',
+router.patch(
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(privacyValidations.updatePrivacyValidation),
   privacyControllers.updatePrivacy,

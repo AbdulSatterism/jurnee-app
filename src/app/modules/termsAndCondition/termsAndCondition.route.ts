@@ -10,7 +10,7 @@ import { termsConditionController } from './termsAndCondition.controllers';
 const router = express.Router();
 
 router.post(
-  '/create-terms-condition',
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(
     tersmConditionValidation.createTermsConditionSchemaValidation,
@@ -20,8 +20,8 @@ router.post(
 
 router.get('/', termsConditionController.getTersmCondition);
 
-router.post(
-  '/update-terms-condition',
+router.patch(
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(
     tersmConditionValidation.updateTermsConditionSchemaValidation,

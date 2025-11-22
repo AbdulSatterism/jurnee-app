@@ -8,7 +8,7 @@ const termsConditionSchema = new Schema<TTermsCondition>(
   { timestamps: true },
 );
 
-export const TermsCondition = model<TTermsCondition>(
-  'TermsCondition',
+export const Guideline = model<TTermsCondition>(
+  'Guideline',
   termsConditionSchema,
 );

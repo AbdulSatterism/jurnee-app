@@ -26,7 +26,7 @@ const apiRoutes = [
   { path: '/terms', route: termsRoutes },
   { path: '/privacy', route: privacyRoutes },
   { path: '/about', route: aboutRoutes },
-  { path: '/terms', route: tersmConditionRoutes },
+  { path: '/guidelines', route: tersmConditionRoutes },
   { path: '/post', route: PostRoute },
   { path: '/like', route: LikeRoutes },
   { path: '/save', route: SavedRoutes },

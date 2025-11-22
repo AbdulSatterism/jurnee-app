@@ -9,7 +9,7 @@ import { TermsControllers } from './terms.controller';
 const router = express.Router();
 
 router.post(
-  '/create-terms',
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(termsValidations.createTermsValidation),
   TermsControllers.createTerms,
@@ -17,8 +17,8 @@ router.post(
 
 router.get('/', TermsControllers.getAllTerms);
 
-router.post(
-  '/update-terms',
+router.patch(
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(termsValidations.updateTermsValidation),
   TermsControllers.updateTerms,

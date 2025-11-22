@@ -9,7 +9,7 @@ import { aboutControllers } from './aboutUs.controller';
 const router = express.Router();
 
 router.post(
-  '/create-about',
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(aboutValidations.createAboutValidation),
   aboutControllers.createAbout,
@@ -17,8 +17,8 @@ router.post(
 
 router.get('/', aboutControllers.getAllAbout);
 
-router.post(
-  '/update-about',
+router.patch(
+  '/',
   auth(USER_ROLES.ADMIN),
   validateRequest(aboutValidations.updateAboutValidation),
   aboutControllers.updateAbout,

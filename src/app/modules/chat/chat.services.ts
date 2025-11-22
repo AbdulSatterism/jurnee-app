@@ -126,7 +126,7 @@ const chatListWithLastMessage = async (
           { $match: { $expr: { $in: ['$_id', '$$memberIds'] } } },
           {
             $project: {
-              _id: 0,
+              _id: 1,
               name: 1,
               image: 1,
             },
@@ -198,7 +198,7 @@ const getChatInboxMessages = async (
   const messages = await Message.find({ chat: chatId })
     .skip(skip)
     .limit(limit)
-    .populate('sender', 'name image -_id')
+    .populate('sender', 'name image _id')
     .sort({ createdAt: -1 });
 
   //  read:false make it read:true

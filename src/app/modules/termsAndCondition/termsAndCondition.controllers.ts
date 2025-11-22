@@ -9,7 +9,7 @@ const createTermsCondition = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'terms and condition created succefully',
+    message: 'guideline created succefully',
     data: result,
   });
 });
@@ -19,7 +19,7 @@ const getTersmCondition = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'terms retrieve succefully',
+    message: 'guideline retrieve succefully',
     data: result,
   });
 });
@@ -30,7 +30,7 @@ const updateTersmCondition = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'terms updated succefully',
+    message: 'guideline updated succefully',
     data: result,
   });
 });

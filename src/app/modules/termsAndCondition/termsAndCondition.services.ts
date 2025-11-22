@@ -1,20 +1,20 @@
 import { TTermsCondition } from './termsAndCondition.interface';
-import { TermsCondition } from './termsAndCondition.model';
+import { Guideline } from './termsAndCondition.model';
 
 const createTermsCondition = async (payload: TTermsCondition) => {
-  const result = await TermsCondition.create(payload);
+  const result = await Guideline.create(payload);
 
   return result;
 };
 
 const getTermsCondinton = async () => {
-  const result = await TermsCondition.find();
+  const result = await Guideline.find();
 
   return result;
 };
 
 const updateTermsCondition = async (payload: TTermsCondition) => {
-  const result = await TermsCondition.findOneAndUpdate(
+  const result = await Guideline.findOneAndUpdate(
     {},
     { description: payload.description },
     { new: true },
