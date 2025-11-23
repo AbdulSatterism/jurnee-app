@@ -71,6 +71,23 @@ const myJoinEvent = catchAsync(async (req, res) => {
   });
 });
 
+const userJoinEvent = catchAsync(async (req, res) => {
+  const userId = req.params.id;
+  const result = await PostService.userJoinEvents(userId, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User joined events retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 const myPost = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const result = await PostService.myPost(userId, req.query);
@@ -78,6 +95,23 @@ const myPost = catchAsync(async (req, res) => {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'My posts retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const userPost = catchAsync(async (req, res) => {
+  const userId = req.params.id;
+  const result = await PostService.userPost(userId, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User posts retrieved successfully',
     meta: {
       page: Number(result.meta.page),
       limit: Number(result.meta.limit),
@@ -108,4 +142,6 @@ export const PostController = {
   myJoinEvent,
   myPost,
   updatePost,
+  userPost,
+  userJoinEvent,
 };

@@ -14,6 +14,7 @@ import { ReportRoutes } from '../app/modules/report/report.route';
 import { ReviewRoutes } from '../app/modules/review/review.route';
 import { ChatRoutes } from '../app/modules/chat/chat.route';
 import { supportRoutes } from '../app/modules/support/support.route';
+import { PaymentRoutes } from '../app/modules/payment/payment.route';
 
 const router = express.Router();
 
@@ -21,7 +22,6 @@ const apiRoutes = [
   { path: '/user', route: UserRoutes },
   { path: '/auth', route: AuthRoutes },
   { path: '/follower', route: FollowerRoutes },
-
   { path: '/notification', route: NotificationRoutes },
   { path: '/terms', route: termsRoutes },
   { path: '/privacy', route: privacyRoutes },
@@ -34,6 +34,7 @@ const apiRoutes = [
   { path: '/review', route: ReviewRoutes },
   { path: '/chat', route: ChatRoutes },
   { path: '/support', route: supportRoutes },
+  { path: '/payments', route: PaymentRoutes },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

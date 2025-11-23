@@ -20,6 +20,8 @@ export type IUser = {
   post?: number;
   follower?: number;
   following?: number;
+  paypalAccount?: string;
+  income?: number;
   location: {
     type: string;
     coordinates: [longtitude: number, latitude: number];

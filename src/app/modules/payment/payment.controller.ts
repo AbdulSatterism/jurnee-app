@@ -1,90 +1,37 @@
-// ///webhook
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../../shared/catchAsync';
+import sendResponse from '../../../shared/sendResponse';
+import { PaymentService } from './payment.service';
 
-// import { Request, Response } from 'express';
+const allPayment = catchAsync(async (req, res) => {
+  const result = await PaymentService.allPayments(req.query);
 
-// import stripe from './utils';
-// import config from '../../../config';
-// import sendResponse from '../../../shared/sendResponse';
-// import { StatusCodes } from 'http-status-codes';
-// import catchAsync from '../../../shared/catchAsync';
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'all payment returns successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
 
-// const createCheckoutSessionController = async (req: Request, res: Response) => {
-//   const userId: string = req.user.id;
-//   const email: string = req.user.email;
+const singlePayment = catchAsync(async (req, res) => {
+  const result = await PaymentService.singlePayment(req?.params?.id);
 
-//   const { appointmentId } = req.body;
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'user payment returns successfully',
+    data: result,
+  });
+});
 
-//   try {
-//     const sessionUrl = await PaymentService.createCheckoutSessionService(
-//       userId,
-//       email,
-//       appointmentId,
-//     );
-//     res.status(200).json({ url: sessionUrl });
-//   } catch (error) {
-//     console.error('Error creating Stripe checkout session:', error);
-//     res.status(500).json({ message: 'Failed to create checkout session' });
-//   }
-// };
-
-// const paymentStripeWebhookController = async (req: Request, res: Response) => {
-//   const sig = req.headers['stripe-signature'];
-
-//   try {
-//     const event = stripe.webhooks.constructEvent(
-//       req.body,
-//       sig as string,
-//       config.payment.stripe_webhook_secret as string,
-//     );
-
-//     await PaymentService.handleStripeWebhookService(event);
-
-//     res.status(200).send({ received: true });
-//   } catch (err) {
-//     console.error('Error in Stripe webhook');
-//     res.status(400).send(`Webhook Error:`);
-//   }
-// };
-
-// //* get all payment and calculate total price
-// const allPayment = catchAsync(async (req, res) => {
-//   const result = await PaymentService.getAllPayment(req.query);
-
-//   sendResponse(res, {
-//     success: true,
-//     statusCode: StatusCodes.OK,
-//     message: 'all payment retrive successfully',
-//     data: result,
-//   });
-// });
-
-// //*by admin
-// const getSinglePaymentDetails = catchAsync(async (req, res) => {
-//   const result = await PaymentService.getSinglePaymentDetails(req?.params?.id);
-
-//   sendResponse(res, {
-//     success: true,
-//     statusCode: StatusCodes.OK,
-//     message: 'single payment retrive successfully',
-//     data: result,
-//   });
-// });
-
-// const specificUserPayments = catchAsync(async (req, res) => {
-//   const result = await PaymentService.specificUserPayments(req.user.id);
-
-//   sendResponse(res, {
-//     success: true,
-//     statusCode: StatusCodes.OK,
-//     message: 'user all payments successfully',
-//     data: result,
-//   });
-// });
-
-// export const paymentControllers = {
-//   createCheckoutSessionController,
-//   paymentStripeWebhookController,
-//   allPayment,
-//   getSinglePaymentDetails,
-//   specificUserPayments,
-// };
+export const PaymentController = {
+  allPayment,
+  singlePayment,
+};

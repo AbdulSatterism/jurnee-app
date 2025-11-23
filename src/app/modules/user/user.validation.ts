@@ -25,6 +25,7 @@ const updateUserProfileSchema = z.object({
         coordinates: z.array(z.number()),
       })
       .optional(),
+    paypalAccount: z.string().optional(),
     interested: z.array(z.string()).optional(),
     gender: z.enum(['MALE', 'FEMALE', 'OTHERS']).optional(),
   }),

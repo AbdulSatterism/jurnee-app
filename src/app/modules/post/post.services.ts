@@ -395,10 +395,81 @@ const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
     },
   };
 };
+// user join events
+
+const userJoinEvents = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const [post, total] = await Promise.all([
+    Post.find({ attenders: userId })
+      .populate('attenders', 'name image -_id')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ attenders: userId }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: post,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
 
 // my post
 
 const myPost = async (userId: string, query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const [post, total] = await Promise.all([
+    Post.find({ author: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ author: userId }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: post,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+const userPost = async (userId: string, query: Record<string, unknown>) => {
   const { page, limit } = query;
   const pages = parseInt(page as string) || 1;
   const size = parseInt(limit as string) || 10;
@@ -439,4 +510,6 @@ export const PostService = {
   myJoinEvents,
   myPost,
   updatePost,
+  userPost,
+  userJoinEvents,
 };

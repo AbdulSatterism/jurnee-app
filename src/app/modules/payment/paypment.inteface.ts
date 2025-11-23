@@ -1,10 +1,10 @@
 // /interfaces/payment.interface.ts
 import { Types } from 'mongoose';
 
-export type TPayment = {
+export interface IPayment {
   userId: Types.ObjectId;
-  appointmentId: Types.ObjectId;
+  serviceId: Types.ObjectId;
+  status: 'COMPLETED' | 'PENDING' | 'FAILED';
   transactionId: string;
-  appointmentPrice: number;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED';
-};
+  amount: number;
+}

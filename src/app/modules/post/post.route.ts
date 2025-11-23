@@ -34,6 +34,13 @@ router.get(
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   PostController.myJoinEvent,
 );
+// user join events
+
+router.get(
+  '/user-join-event/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.userJoinEvent,
+);
 
 router.post(
   '/deal',
@@ -133,6 +140,12 @@ router.get(
   '/my-post',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   PostController.myPost,
+);
+
+router.get(
+  '/user-post/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.userPost,
 );
 
 router.patch(

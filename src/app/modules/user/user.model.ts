@@ -87,6 +87,15 @@ const userSchema = new Schema<IUser, UserModal>(
       type: { type: String, default: 'Point' },
       coordinates: { type: [Number] },
     },
+    paypalAccount: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    income: {
+      type: Number,
+      default: 0,
+    },
     authentication: {
       type: {
         isResetPassword: {
