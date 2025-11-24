@@ -1,15 +1,21 @@
 import { model, Schema } from 'mongoose';
 import { IPost } from './post.interface';
 
+const timeSlotSchema = new Schema({
+  start: { type: String, required: true }, // "09:00"
+  end: { type: String, required: true }, // "10:00"
+  available: { type: Boolean, default: true },
+});
+
 const scheduleSchema = new Schema({
   day: {
     type: String,
     enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-    required: false,
+    required: true,
   },
-  startTime: { type: String, required: false },
-  endTime: { type: String, required: false },
-  available: { type: Boolean, default: true },
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
+  timeSlots: { type: [timeSlotSchema], required: true },
 });
 
 const postSchema = new Schema<IPost>(

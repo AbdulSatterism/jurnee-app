@@ -1,51 +1,18 @@
 import { z } from 'zod';
 
-/*
+const timeSlotSchema = z.object({
+  start: z.string(), // "09:00"
+  end: z.string(), // "10:00"
+});
 
-
-export interface IPost {
-  author: Types.ObjectId;
-  image?: string;
-  media?: string[];
-  title?: string;
-  description?: string;
-  startDate?: Date;
-  startTime?: string;
-  address?: string;
-  location?: {
-    type: 'Point';
-    coordinates: [longitude: number, latitude: number];
-  };
-  hasTag?: string[];
-
-  // for deal posts
-  endDate?: string;
-
-  // for service posts
-  price?: number;
-  schedule?: { day: WeekDay; startTime: string; endTime: string }[];
-  category?: string;
-  serviceType?: string;
-
-  // for alert posts
-  missingName?: string;
-  missingAge?: number;
-  clothingDescription?: string;
-  lastSeenLocation?: {
-    type: 'Point';
-    coordinates: [longitude: number, latitude: number];
-  };
-  lastSeenDate?: Date;
-  contactInfo?: string;
-  expireLimit?: number; // in days
-  capacity?: number;
-  amenities?: string[];
-  licenses?: string;
-  views?: number;
-  likes?: number;
-}
-
-*/
+const scheduleSchema = z.array(
+  z.object({
+    day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
+    startTime: z.string(), // "09:00"
+    endTime: z.string(), // "17:00"
+    timeSlots: z.array(timeSlotSchema), // Array of time slots
+  }),
+);
 
 const eventValidation = z.object({
   body: z.object({
@@ -84,14 +51,7 @@ const foodBeverageServiceValidation = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
     price: z.number(),
-    schedule: z.array(
-      z.object({
-        day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
-        startTime: z.string(),
-        endTime: z.string(),
-        available: z.boolean().optional(),
-      }),
-    ),
+    schedule: scheduleSchema,
     category: z.string(),
     subcategory: z.string(),
     address: z.string(),
@@ -108,14 +68,7 @@ const entertainmentServiceValidation = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
     price: z.number(),
-    schedule: z.array(
-      z.object({
-        day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
-        startTime: z.string(),
-        endTime: z.string(),
-        available: z.boolean().optional(),
-      }),
-    ),
+    schedule: scheduleSchema,
     category: z.string(),
     subcategory: z.string(),
     address: z.string(),
@@ -132,14 +85,7 @@ const homeServiceValidation = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
     price: z.number(),
-    schedule: z.array(
-      z.object({
-        day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
-        startTime: z.string(),
-        endTime: z.string(),
-        available: z.boolean().optional(),
-      }),
-    ),
+    schedule: scheduleSchema,
     category: z.string(),
     subcategory: z.string(),
     address: z.string(),
@@ -157,14 +103,7 @@ const venueServiceValidation = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
     price: z.number(),
-    schedule: z.array(
-      z.object({
-        day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
-        startTime: z.string(),
-        endTime: z.string(),
-        available: z.boolean().optional(),
-      }),
-    ),
+    schedule: scheduleSchema,
     category: z.string(),
     subcategory: z.string(),
     address: z.string(),

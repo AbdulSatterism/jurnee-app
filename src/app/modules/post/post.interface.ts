@@ -2,6 +2,19 @@ import { Types } from 'mongoose';
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
+export interface ITimeSlot {
+  start: string;
+  end: string;
+  available?: boolean;
+}
+
+export interface ISchedule {
+  day: WeekDay;
+  startTime: string;
+  endTime: string;
+  timeSlots: ITimeSlot[];
+}
+
 export interface IPost {
   author: Types.ObjectId;
   image?: string;
@@ -22,12 +35,7 @@ export interface IPost {
 
   // for service posts
   price?: number;
-  schedule?: {
-    day: WeekDay;
-    startTime: string;
-    endTime: string;
-    available?: boolean;
-  }[];
+  schedule?: ISchedule[];
   category?: string;
   subcategory?: string;
   serviceType?: string;

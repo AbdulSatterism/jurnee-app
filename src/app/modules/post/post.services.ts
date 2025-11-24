@@ -135,9 +135,47 @@ const getAllPosts = async (query: IQuery, userId: string) => {
         reviewsCount: { $size: '$reviews' }, // Count the number of reviews
       },
     },
+
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'author',
+        foreignField: '_id',
+        as: 'author',
+      },
+    },
+    {
+      $unwind: {
+        path: '$author',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
     {
       $project: {
         reviews: 0,
+        'author.password': 0,
+        'author.authentication': 0,
+        'author.googleId': 0,
+        'author.appleId': 0,
+        'author.isDeleted': 0,
+        'author.location': 0,
+        'author.role': 0,
+        'author.interested': 0,
+        'author.phone': 0,
+        'author.address': 0,
+        'author.paypalAccount': 0,
+        'author.income': 0,
+        'author.verified': 0,
+        'author.createdAt': 0,
+        'author.updatedAt': 0,
+        'author.__v': 0,
+        'author.likes': 0,
+        'author.following': 0,
+        'author.follower': 0,
+        'author.gender': 0,
+        'author.bio': 0,
+        'author.post': 0,
       },
     },
 
