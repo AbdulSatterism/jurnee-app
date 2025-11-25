@@ -1,9 +1,143 @@
-import Stripe from 'stripe';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import config from '../../../config';
+import axios from 'axios';
+import { Buffer } from 'buffer';
+import { errorLogger } from '../../../shared/logger';
+import { Post } from '../post/post.model';
 
-// Initialize Stripe client with secret key
-const stripe = new Stripe(config.stripe_api_secret as string, {
-  apiVersion: '2025-01-27.acacia',
-});
+const clientId = config.paypal.client_id!;
+const clientSecret = config.paypal.client_secret!;
 
-export default stripe;
+// Get PayPal access token
+const getPayPalAccessToken = async (): Promise<string> => {
+  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  const response = await axios.post(
+    // 'https://api-m.paypal.com/v1/oauth2/token',
+    'https://api-m.sandbox.paypal.com/v1/oauth2/token', // Use sandbox endpoint for testing
+    'grant_type=client_credentials',
+    {
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    },
+  );
+
+  return response.data.access_token;
+};
+
+// Capture PayPal order payment
+export const captureOrder = async (orderId: string) => {
+  const accessToken = await getPayPalAccessToken();
+  const response = await axios.post(
+    // `https://api-m.paypal.com/v2/checkout/orders/${orderId}/capture`, // Use live endpoint for production
+    `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`, // Use sandbox endpoint for testing
+    {}, // empty body required
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  return response.data;
+};
+
+export const payoutToHost = async (
+  receiverEmail: string,
+  amount: number,
+  serviceName: string,
+  serviceId: string,
+) => {
+  const accessToken = await getPayPalAccessToken();
+
+  const payoutBody = {
+    sender_batch_header: {
+      sender_batch_id: `payout_${Date.now()}_${serviceId}`,
+      email_subject: 'You have pay out from your service',
+      email_message: `Hello! You have received a payout for your service: ${serviceName}`,
+    },
+    items: [
+      {
+        recipient_type: 'EMAIL',
+        amount: {
+          value: amount.toFixed(2),
+          currency: 'USD',
+        },
+        receiver: receiverEmail,
+        note: `Payout for service host: ${serviceName}`,
+        sender_item_id: `item_${Date.now()}`,
+      },
+    ],
+  };
+
+  try {
+    const response = await axios.post(
+      // 'https://api-m.paypal.com/v1/payments/payouts', // Use api-m for REST v2 payouts
+      'https://api-m.sandbox.paypal.com/v1/payments/payouts', // Use sandbox endpoint for testing
+      payoutBody,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    return response.data;
+  } catch (error: any) {
+    errorLogger.error(
+      'PayPal payout error:',
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+export const createPaymentIntent = async (
+  serviceId: string,
+  amount: string,
+) => {
+  const accessToken = await getPayPalAccessToken();
+
+  // Check if the party has available seats and if the user is already a participant
+  const service = await Post.findById(serviceId);
+  if (!service) {
+    throw new Error('Service not found');
+  }
+
+  // Create PayPal Order
+  const response = await axios.post(
+    // 'https://api-m.paypal.com/v2/checkout/orders', // Use live endpoint for production
+    'https://api-m.sandbox.paypal.com/v2/checkout/orders', // Use sandbox endpoint for testing
+    {
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: {
+            currency_code: 'USD',
+            value: amount,
+          },
+        },
+      ],
+      application_context: {
+        return_url: 'http://localhost:5173',
+        cancel_url: 'https://your-frontend-url.com/payment-cancel',
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const approvalLink = response.data.links.find(
+    (link: any) => link.rel === 'approve',
+  );
+  if (!approvalLink) {
+    throw new Error('No approval link found');
+  }
+
+  return approvalLink.href;
+};

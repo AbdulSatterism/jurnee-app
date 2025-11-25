@@ -37,6 +37,11 @@ export default {
     gpt_model_url: process.env.GPT_MODEL_URL,
   },
 
+  paypal: {
+    client_id: process.env.PAYPAL_CLIENT_ID,
+    client_secret: process.env.PAYPAL_CLIENT_SECRET,
+  },
+
   cloudinary: {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,

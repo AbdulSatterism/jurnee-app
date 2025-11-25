@@ -22,7 +22,7 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       required: true,
       select: 0,
-      minlength: 8,
+      minlength: 4,
     },
     address: {
       type: String,
