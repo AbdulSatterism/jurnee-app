@@ -540,6 +540,90 @@ const userPost = async (userId: string, query: Record<string, unknown>) => {
   };
 };
 
+// for admin
+
+const publishedPost = async (query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const [result, total] = await Promise.all([
+    Post.find({ status: 'PUBLISHED' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ status: 'PUBLISHED' }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+// suspicious post
+const suspiciousPost = async (query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const [result, total] = await Promise.all([
+    Post.find({ status: 'SUSPICIOUS' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ status: 'SUSPICIOUS' }),
+  ]);
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+// block post
+const blockPost = async (query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+  const [result, total] = await Promise.all([
+    Post.find({ status: 'BLOCKED' })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ status: 'BLOCKED' }),
+  ]);
+  const totalPage = Math.ceil(total / size);
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -550,4 +634,7 @@ export const PostService = {
   updatePost,
   userPost,
   userJoinEvents,
+  publishedPost,
+  suspiciousPost,
+  blockPost,
 };

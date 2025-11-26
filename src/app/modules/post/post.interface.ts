@@ -56,7 +56,7 @@ export interface IPost {
   licenses?: string;
   views?: number;
   likes?: number;
-  status?: 'PUBLISHED' | 'REJECTED';
+  status?: 'PUBLISHED' | 'BLOCKED' | 'SUSPICIOUS';
   boost?: boolean;
   attenders?: Types.ObjectId[];
   isSaved?: boolean;

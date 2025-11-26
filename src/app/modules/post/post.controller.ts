@@ -134,6 +134,56 @@ const updatePost = catchAsync(async (req, res) => {
   });
 });
 
+// for admin
+
+const publishedPosts = catchAsync(async (req, res) => {
+  const result = await PostService.publishedPost(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Published posts retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const blockedPosts = catchAsync(async (req, res) => {
+  const result = await PostService.blockPost(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Blocked posts retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const suspiciousPosts = catchAsync(async (req, res) => {
+  const result = await PostService.suspiciousPost(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Suspicious posts retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -144,4 +194,7 @@ export const PostController = {
   updatePost,
   userPost,
   userJoinEvent,
+  publishedPosts,
+  suspiciousPosts,
+  blockedPosts,
 };

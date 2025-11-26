@@ -154,4 +154,14 @@ router.patch(
   PostController.updatePost,
 );
 
+// admin routes
+
+router.get('/published', auth(USER_ROLES.ADMIN), PostController.publishedPosts);
+router.get('/blocked', auth(USER_ROLES.ADMIN), PostController.blockedPosts);
+router.get(
+  '/suspicious',
+  auth(USER_ROLES.ADMIN),
+  PostController.suspiciousPosts,
+);
+
 export const PostRoute = router;

@@ -67,7 +67,7 @@ const postSchema = new Schema<IPost>(
     licenses: { type: String, default: null },
     status: {
       type: String,
-      enum: ['PUBLISHED', 'REJECTED'],
+      enum: ['PUBLISHED', 'BLOCKED', 'SUSPICIOUS'],
       default: 'PUBLISHED',
     },
     boost: { type: Boolean, default: false },
