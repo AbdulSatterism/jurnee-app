@@ -11,6 +11,7 @@ const bookingSchema = new Schema<IBooking>(
     slotId: { type: Schema.Types.ObjectId, required: true }, // timeSlots._id
     slotStart: { type: String, required: true }, // "10:00"
     slotEnd: { type: String, required: true }, // "11:00"
+    serviceDate: { type: Date, required: true },
     status: {
       type: String,
       enum: ['PENDING', 'CANCELLED', 'COMPLETED'],

@@ -27,7 +27,81 @@ const completeBooking = catchAsync(async (req, res) => {
   });
 });
 
+const upcommingBookings = catchAsync(async (req, res) => {
+  const result = await BookingService.upcommingBookings(req.user.id, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Upcoming bookings retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const pastBookings = catchAsync(async (req, res) => {
+  const result = await BookingService.pastBookings(req.user.id, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Past bookings retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const incompletedBookingsByProvider = catchAsync(async (req, res) => {
+  const result = await BookingService.incompletedBookingsByProvider(
+    req.user.id,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Incompleted upcoming bookings ',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const completedBookingsByProvider = catchAsync(async (req, res) => {
+  const result = await BookingService.completedBookingsByProvider(
+    req.user.id,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Completed bookings',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 export const BookingController = {
   createBooking,
   completeBooking,
+  upcommingBookings,
+  pastBookings,
+  incompletedBookingsByProvider,
+  completedBookingsByProvider,
 };

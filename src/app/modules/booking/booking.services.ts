@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from 'mongoose';
 import { IBooking } from './booking.interface';
 import { Booking } from './booking.model';
@@ -6,7 +7,10 @@ import { StatusCodes } from 'http-status-codes';
 import { Payment } from '../payment/payment.model';
 import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
-import { captureOrder } from '../payment/utils';
+import { captureOrder, payoutToHost } from '../payment/utils';
+import { emailTemplate } from '../../../shared/emailTemplate';
+import { emailHelper } from '../../../helpers/emailHelper';
+import { IPayoutConfirmation } from '../../../types/emailTamplate';
 
 const createBooking = async (userId: string, payload: Partial<IBooking>) => {
   payload.customer = new Types.ObjectId(userId);
@@ -84,7 +88,7 @@ const createBooking = async (userId: string, payload: Partial<IBooking>) => {
     await User.findByIdAndUpdate(
       payload.provider,
       {
-        $inc: { earnings: payload.amount || 0 },
+        $inc: { income: payload.amount || 0 },
       },
       { session },
     );
@@ -106,78 +110,270 @@ const createBooking = async (userId: string, payload: Partial<IBooking>) => {
   return { message: 'Booking created successfully' };
 };
 
-// const createBooking = async (userId: string, payload: Partial<IBooking>) => {
-//   const result = await Post.findByIdAndUpdate(
-//     payload.service,
-//     {
-//       $set: {
-//         'schedule.$[sch].timeSlots.$[ts].available': false,
-//       },
-//     },
-//     {
-//       arrayFilters: [
-//         { 'sch._id': new Types.ObjectId(payload.scheduleId) },
-//         { 'ts._id': new Types.ObjectId(payload.slotId) },
-//       ],
-//       new: true,
-//     },
-//   );
-
-//   if (!result) throw new Error('Post not found');
-
-//   return result;
-// };
-
-// complete booking when will be completed then update post schedule slot to available true again
-
-// TODO: payout also to service provider when booking is completed and descrease earnings from user and payout to provider
-
 const completeBooking = async (userId: string, bookingId: string) => {
-  const booking = await Booking.findById(bookingId);
+  const session = await Booking.db.startSession();
+  try {
+    session.startTransaction();
 
-  if (!booking) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Booking not found');
-  }
+    const booking = await Booking.findById(bookingId).session(session);
+    if (!booking) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Booking not found');
+    }
 
-  if (userId !== booking.customer.toString()) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      'You are not authorized to complete this booking',
+    if (booking.status === 'COMPLETED') {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Booking is already completed',
+      );
+    }
+
+    const serviceProvider = await User.findById(booking.provider).session(
+      session,
     );
-  }
+    if (!serviceProvider) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Service provider not found');
+    }
 
-  await Booking.findByIdAndUpdate(
-    bookingId,
-    { status: 'COMPLETED' },
-    { new: true },
-  );
+    // get service provider and check have paypal account or not
+    if (!serviceProvider.paypalAccount) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Service provider does not have a PayPal account',
+      );
+    }
 
-  if (!booking) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Booking not found');
-  }
+    if (userId !== booking.customer.toString()) {
+      throw new AppError(
+        StatusCodes.FORBIDDEN,
+        'You are not authorized to complete this booking',
+      );
+    }
 
-  // Update the post schedule slot to available true again
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: 'COMPLETED' },
+      { new: true, session },
+    );
 
-  await Post.findByIdAndUpdate(
-    booking.service,
-    {
-      $set: {
-        'schedule.$[sch].timeSlots.$[ts].available': true,
+    // Update the post schedule slot to available true again
+
+    await Post.findByIdAndUpdate(
+      booking.service,
+      {
+        $set: {
+          'schedule.$[sch].timeSlots.$[ts].available': true,
+        },
       },
-    },
-    {
-      arrayFilters: [
-        { 'sch._id': new Types.ObjectId(booking.scheduleId) },
-        { 'ts._id': new Types.ObjectId(booking.slotId) },
-      ],
-      new: true,
-    },
-  );
+      {
+        arrayFilters: [
+          { 'sch._id': new Types.ObjectId(booking.scheduleId) },
+          { 'ts._id': new Types.ObjectId(booking.slotId) },
+        ],
+        new: true,
+      },
+    );
 
-  return booking;
+    // decrease service provider income
+    await User.findByIdAndUpdate(
+      booking.provider,
+      { $inc: { income: -(booking.amount || 0) } },
+      { session },
+    );
+
+    await session.commitTransaction();
+
+    // perform external side-effects after successful commit
+    const payoutAmount = (booking.amount || 0) - 8; // deduct platform fee
+
+    await payoutToHost(
+      serviceProvider.paypalAccount as string,
+      payoutAmount,
+      booking.service.toString(),
+      booking._id?.toString() || '',
+    );
+
+    const emailValues: IPayoutConfirmation = {
+      email: serviceProvider.paypalAccount as string,
+      amount: payoutAmount,
+      status: 'COMPLETED',
+      paypalBatchId: booking.orderId,
+    };
+
+    const hostConfermationMail = emailTemplate.payoutConfirmation(emailValues);
+    emailHelper.sendEmail(hostConfermationMail);
+
+    return updatedBooking || booking;
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+};
+
+// my upcomming booked services compare with live date
+
+// compare with this time  "serviceDate": "2025-11-26T10:00:00.000Z", to live time
+
+const upcommingBookings = async (
+  userId: string,
+  query: Record<string, any>,
+) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const currentDate = new Date();
+  const [result, total] = await Promise.all([
+    Booking.find({
+      customer: userId,
+      serviceDate: { $gt: currentDate },
+    })
+      .populate('service', 'title category ')
+      .populate('provider', 'name email address')
+      .skip(skip)
+      .limit(size),
+    Booking.countDocuments({
+      customer: userId,
+      serviceDate: { $gt: currentDate },
+    }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+// past bookings can be implemented similarly by changing the comparison operator to $lt
+
+const pastBookings = async (userId: string, query: Record<string, any>) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const currentDate = new Date();
+
+  const [result, total] = await Promise.all([
+    Booking.find({
+      customer: userId,
+      serviceDate: { $lt: currentDate },
+    })
+      .populate('service', 'title category ')
+      .populate('provider', 'name email address')
+      .skip(skip)
+      .limit(size),
+    Booking.countDocuments({
+      customer: userId,
+      serviceDate: { $lt: currentDate },
+    }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+// also need for how many booking incompleted by service provider
+
+const incompletedBookingsByProvider = async (
+  userId: string,
+  query: Record<string, any>,
+) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const [result, total] = await Promise.all([
+    Booking.find({
+      provider: userId,
+      status: { $ne: 'COMPLETED' },
+    })
+      .populate('service', 'title category ')
+      .populate('provider', 'name email address')
+      .skip(skip)
+      .limit(size),
+    Booking.countDocuments({
+      provider: userId,
+      status: { $ne: 'COMPLETED' },
+    }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
+// also need completed bookings by service provider
+
+const completedBookingsByProvider = async (
+  userId: string,
+  query: Record<string, any>,
+) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const [result, total] = await Promise.all([
+    Booking.find({
+      provider: userId,
+      status: 'COMPLETED',
+    })
+      .populate('service', 'title category ')
+      .populate('provider', 'name email address')
+      .skip(skip)
+      .limit(size),
+    Booking.countDocuments({
+      provider: userId,
+      status: 'COMPLETED',
+    }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: result,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
 };
 
 export const BookingService = {
   createBooking,
   completeBooking,
+  upcommingBookings,
+  pastBookings,
+  incompletedBookingsByProvider,
+  completedBookingsByProvider,
 };

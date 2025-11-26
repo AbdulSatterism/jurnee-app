@@ -17,4 +17,32 @@ router.patch(
   BookingController.completeBooking,
 );
 
+// upcoming bookings
+router.get(
+  '/upcoming',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  BookingController.upcommingBookings,
+);
+
+// past bookings
+router.get(
+  '/past',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  BookingController.pastBookings,
+);
+
+// incompleted bookings by service provider
+router.get(
+  '/incompleted',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  BookingController.incompletedBookingsByProvider,
+);
+
+// completed bookings by service provider
+router.get(
+  '/completed',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  BookingController.completedBookingsByProvider,
+);
+
 export const BookingRoutes = router;

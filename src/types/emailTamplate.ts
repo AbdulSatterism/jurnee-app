@@ -8,3 +8,10 @@ export type IResetPassword = {
   email: string;
   otp: number;
 };
+
+export type IPayoutConfirmation = {
+  email: string;
+  amount: number;
+  status: string;
+  paypalBatchId: string;
+};
