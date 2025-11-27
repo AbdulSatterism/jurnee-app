@@ -184,6 +184,28 @@ const suspiciousPosts = catchAsync(async (req, res) => {
   });
 });
 
+const blockOrSuspiciousToPublished = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const result = await PostService.blockOrSuspiciousToPublished(postId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post status updated to published successfully',
+    data: result,
+  });
+});
+
+const publishedToBlocked = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const result = await PostService.publishedToBlocked(postId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post status updated to blocked successfully',
+    data: result,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -197,4 +219,6 @@ export const PostController = {
   publishedPosts,
   suspiciousPosts,
   blockedPosts,
+  blockOrSuspiciousToPublished,
+  publishedToBlocked,
 };

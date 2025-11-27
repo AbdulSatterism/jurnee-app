@@ -520,6 +520,7 @@ const userPost = async (userId: string, query: Record<string, unknown>) => {
 
   const [post, total] = await Promise.all([
     Post.find({ author: userId })
+      .populate('author', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
@@ -624,6 +625,33 @@ const blockPost = async (query: Record<string, unknown>) => {
   };
 };
 
+// delete post admin and  check status if published then don't delete just change status to blocked
+
+const publishedToBlocked = async (postId: string) => {
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  if (post.status === 'PUBLISHED') {
+    post.status = 'BLOCKED';
+    await post.save();
+    return;
+  }
+};
+
+const blockOrSuspiciousToPublished = async (postId: string) => {
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+  if (post.status === 'BLOCKED' || post.status === 'SUSPICIOUS') {
+    post.status = 'PUBLISHED';
+    await post.save();
+    return;
+  }
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -637,4 +665,6 @@ export const PostService = {
   publishedPost,
   suspiciousPost,
   blockPost,
+  publishedToBlocked,
+  blockOrSuspiciousToPublished,
 };

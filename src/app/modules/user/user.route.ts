@@ -40,7 +40,7 @@ router.get(
 
 router.get(
   '/get-single-user/:id',
-  auth(USER_ROLES.ADMIN),
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
   UserController.getSingleUser,
 );
 

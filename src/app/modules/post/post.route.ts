@@ -164,4 +164,16 @@ router.get(
   PostController.suspiciousPosts,
 );
 
+router.patch(
+  '/block-suspicious-to-published/:id',
+  auth(USER_ROLES.ADMIN),
+  PostController.blockOrSuspiciousToPublished,
+);
+
+router.patch(
+  '/published-to-blocked/:id',
+  auth(USER_ROLES.ADMIN),
+  PostController.publishedToBlocked,
+);
+
 export const PostRoute = router;
