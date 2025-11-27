@@ -13,3 +13,9 @@ export interface IBooking {
   status: 'PENDING' | 'CANCELLED' | 'COMPLETED';
   amount: number;
 }
+
+export interface IBoost {
+  orderId: string;
+  service: Types.ObjectId;
+  amount: number;
+}

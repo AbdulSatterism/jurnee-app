@@ -97,6 +97,16 @@ const completedBookingsByProvider = catchAsync(async (req, res) => {
   });
 });
 
+const boostService = catchAsync(async (req, res) => {
+  const result = await BookingService.boostService(req.user.id, req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Service boosted successfully',
+    data: result,
+  });
+});
+
 export const BookingController = {
   createBooking,
   completeBooking,
@@ -104,4 +114,5 @@ export const BookingController = {
   pastBookings,
   incompletedBookingsByProvider,
   completedBookingsByProvider,
+  boostService,
 };

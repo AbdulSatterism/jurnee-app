@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from 'mongoose';
-import { IBooking } from './booking.interface';
+import { IBooking, IBoost } from './booking.interface';
 import { Booking } from './booking.model';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
@@ -11,6 +11,7 @@ import { captureOrder, payoutToHost } from '../payment/utils';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { IPayoutConfirmation } from '../../../types/emailTamplate';
+import { IPayment } from '../payment/paypment.inteface';
 
 const createBooking = async (userId: string, payload: Partial<IBooking>) => {
   payload.customer = new Types.ObjectId(userId);
@@ -369,6 +370,40 @@ const completedBookingsByProvider = async (
   };
 };
 
+// boost post  after confiramation payment
+
+const boostService = async (userId: string, payload: IBoost) => {
+  const serviceExists = await Post.findById(payload.service);
+
+  if (!serviceExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Service not found');
+  }
+
+  const captureResponse = await captureOrder(payload.orderId);
+
+  if (!captureResponse || captureResponse.status !== 'COMPLETED') {
+    throw new AppError(StatusCodes.PAYMENT_REQUIRED, 'Payment not completed');
+  }
+
+  // Extract capture details
+  const captureId = captureResponse.purchase_units[0].payments.captures[0].id;
+  const captureStatus = captureResponse.status;
+
+  // update post boost status true
+  serviceExists.boost = true;
+  await serviceExists.save();
+
+  const payment: IPayment = {
+    userId: new Types.ObjectId(userId),
+    serviceId: serviceExists._id,
+    status: captureStatus,
+    transactionId: captureId,
+    amount: payload.amount,
+  };
+
+  await Payment.create(payment);
+};
+
 export const BookingService = {
   createBooking,
   completeBooking,
@@ -376,4 +411,5 @@ export const BookingService = {
   pastBookings,
   incompletedBookingsByProvider,
   completedBookingsByProvider,
+  boostService,
 };

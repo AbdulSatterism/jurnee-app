@@ -45,4 +45,10 @@ router.get(
   BookingController.completedBookingsByProvider,
 );
 
+router.post(
+  '/boost',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  BookingController.boostService,
+);
+
 export const BookingRoutes = router;
