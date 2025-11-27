@@ -176,4 +176,10 @@ router.patch(
   PostController.publishedToBlocked,
 );
 
+router.get(
+  '/total/:category',
+  auth(USER_ROLES.ADMIN),
+  PostController.totalPostByCategory,
+);
+
 export const PostRoute = router;

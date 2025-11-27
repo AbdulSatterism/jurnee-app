@@ -652,6 +652,15 @@ const blockOrSuspiciousToPublished = async (postId: string) => {
   }
 };
 
+// need total post base on category
+
+const totalPostByCategory = async (category: string) => {
+  const total = await Post.countDocuments({
+    category: { $regex: new RegExp(category, 'i') },
+  });
+  return total;
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -667,4 +676,5 @@ export const PostService = {
   blockPost,
   publishedToBlocked,
   blockOrSuspiciousToPublished,
+  totalPostByCategory,
 };

@@ -206,6 +206,17 @@ const publishedToBlocked = catchAsync(async (req, res) => {
   });
 });
 
+const totalPostByCategory = catchAsync(async (req, res) => {
+  const category = req.params.category;
+  const total = await PostService.totalPostByCategory(category);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: `total posts in ${category} category`,
+    data: total,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -221,4 +232,5 @@ export const PostController = {
   blockedPosts,
   blockOrSuspiciousToPublished,
   publishedToBlocked,
+  totalPostByCategory,
 };
