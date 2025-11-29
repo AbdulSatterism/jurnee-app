@@ -25,7 +25,7 @@ const createPrivateChat = async (creatorId: string, participantId: string) => {
   const existingChat = await Chat.findOne({
     'members.0': objectIdA,
     'members.1': objectIdB,
-  });
+  }).populate('members', '_id name image');
 
   if (existingChat) return existingChat;
 
@@ -44,6 +44,8 @@ const createPrivateChat = async (creatorId: string, participantId: string) => {
     createdBy: new mongoose.Types.ObjectId(creatorId),
   } as IChat);
 
+  const updatedChat = await chat.populate('members', '_id name image');
+
   // Create a notification for the participant
   await Notification.create({
     content: `New chat has been started with ${creator?.name}`,
@@ -51,7 +53,7 @@ const createPrivateChat = async (creatorId: string, participantId: string) => {
     receiverId: participantId,
   });
 
-  return chat;
+  return updatedChat;
 };
 
 const chatListWithLastMessage = async (
