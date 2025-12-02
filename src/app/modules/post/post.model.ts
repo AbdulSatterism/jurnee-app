@@ -26,7 +26,7 @@ const postSchema = new Schema<IPost>(
     title: { type: String, default: null },
     description: { type: String, default: null },
     startDate: { type: Date, default: null },
-    startTime: { type: String, default: null },
+    startTime: { type: Date, default: null },
     address: { type: String, default: null },
     location: {
       type: {

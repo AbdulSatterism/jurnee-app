@@ -22,7 +22,7 @@ export interface IPost {
   title?: string;
   description?: string;
   startDate?: Date;
-  startTime?: string;
+  startTime?: Date;
   address?: string;
   location?: {
     type: 'Point';
