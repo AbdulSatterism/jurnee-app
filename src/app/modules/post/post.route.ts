@@ -150,6 +150,10 @@ router.get(
 
 router.patch(
   '/:id',
+  fileUploader({
+    image: { fileType: 'images', size: 50 * 1024 * 1024, maxCount: 1 },
+    media: { fileType: 'media', size: 100 * 1024 * 1024, maxCount: 6 },
+  }),
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   PostController.updatePost,
 );
