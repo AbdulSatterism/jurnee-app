@@ -18,7 +18,7 @@ const eventValidation = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     startDate: z.string(),
     startTime: z.string(),
     address: z.string(),
@@ -34,7 +34,7 @@ const dealValidation = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     startDate: z.string(),
     endDate: z.string(),
     address: z.string(),
@@ -52,7 +52,7 @@ const foodBeverageServiceValidation = z.object({
     description: z.string(),
     price: z.number(),
     schedule: scheduleSchema,
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     subcategory: z.string(),
     address: z.string(),
     location: z.object({
@@ -69,7 +69,7 @@ const entertainmentServiceValidation = z.object({
     description: z.string(),
     price: z.number(),
     schedule: scheduleSchema,
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     subcategory: z.string(),
     address: z.string(),
     location: z.object({
@@ -86,7 +86,7 @@ const homeServiceValidation = z.object({
     description: z.string(),
     price: z.number(),
     schedule: scheduleSchema,
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     subcategory: z.string(),
     address: z.string(),
     location: z.object({
@@ -104,7 +104,7 @@ const venueServiceValidation = z.object({
     description: z.string(),
     price: z.number(),
     schedule: scheduleSchema,
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     subcategory: z.string(),
     address: z.string(),
     location: z.object({
@@ -121,7 +121,7 @@ const alertMissingPersonValidation = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     subcategory: z.string(),
     address: z.string(),
     location: z.object({
@@ -146,7 +146,7 @@ const alertValidation = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string(),
-    category: z.string(),
+    category: z.enum(['event', 'service', 'alert', 'deal']),
     subcategory: z.string(),
     address: z.string(),
     location: z.object({

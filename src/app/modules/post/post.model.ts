@@ -44,7 +44,11 @@ const postSchema = new Schema<IPost>(
     // service posts
     price: { type: Number, default: null },
     schedule: { type: [scheduleSchema] },
-    category: { type: String, default: null },
+    category: {
+      type: String,
+      enum: ['event', 'service', 'alert', 'deal'],
+      default: null,
+    },
     subcategory: { type: String, default: null },
     serviceType: { type: String, default: null },
 

@@ -17,7 +17,7 @@ const createFollower = catchAsync(async (req, res) => {
 });
 
 const getAllFollowers = catchAsync(async (req, res) => {
-  const id = req.user.id;
+  const id = req.params.userId;
 
   const result = await FollowerService.getAllFollowers(id, req.query);
 
@@ -36,7 +36,7 @@ const getAllFollowers = catchAsync(async (req, res) => {
 });
 
 const getAllFollowing = catchAsync(async (req, res) => {
-  const id = req.user.id;
+  const id = req.params.userId;
 
   const result = await FollowerService.getAllFollowing(id, req.query);
 

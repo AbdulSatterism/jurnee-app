@@ -36,7 +36,7 @@ export interface IPost {
   // for service posts
   price?: number;
   schedule?: ISchedule[];
-  category?: string;
+  category?: 'event' | 'service' | 'alert' | 'deal';
   subcategory?: string;
   serviceType?: string;
 

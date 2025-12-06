@@ -3,22 +3,43 @@ import { IFollower } from './follower.interface';
 import { Follower } from './follower.model';
 import { Types } from 'mongoose';
 
-const createFollower = async (id: string, payload: IFollower) => {
-  payload.followed = new Types.ObjectId(id);
+const createFollower = async (userId: string, payload: IFollower) => {
+  payload.followed = new Types.ObjectId(userId);
   const { followed, follower } = payload;
 
   if (followed.equals(follower)) {
     throw new Error('You cannot follow yourself');
   }
 
+  // Check existing follow relationship
   const existingFollower = await Follower.findOne({ followed, follower });
+
   if (existingFollower) {
-    existingFollower.isFollower = !existingFollower.isFollower;
+    const isCurrentlyFollowing = existingFollower.isFollower;
+    existingFollower.isFollower = !isCurrentlyFollowing;
     await existingFollower.save();
+
+    // Toggle counts
+    if (isCurrentlyFollowing) {
+      // Unfollow: decrease counts
+      await User.findByIdAndUpdate(follower, { $inc: { following: -1 } });
+      await User.findByIdAndUpdate(followed, { $inc: { followers: -1 } });
+    } else {
+      // Follow again: increase counts
+      await User.findByIdAndUpdate(follower, { $inc: { following: 1 } });
+      await User.findByIdAndUpdate(followed, { $inc: { followers: 1 } });
+    }
+
     return existingFollower;
   }
 
+  // New follow action
   const result = await Follower.create(payload);
+
+  // Increase counts
+  await User.findByIdAndUpdate(follower, { $inc: { following: 1 } });
+  await User.findByIdAndUpdate(followed, { $inc: { followers: 1 } });
+
   return result;
 };
 

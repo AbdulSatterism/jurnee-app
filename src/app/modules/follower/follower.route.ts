@@ -12,13 +12,13 @@ router.post(
 );
 
 router.get(
-  '/my-following',
+  '/following/:userId',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   FollowerController.getAllFollowers,
 );
 
 router.get(
-  '/my-followers',
+  '/followers/:userId',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   FollowerController.getAllFollowing,
 );

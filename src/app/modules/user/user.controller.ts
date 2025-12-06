@@ -8,7 +8,7 @@ import { UserService } from './user.service';
 import getFilePath from '../../../shared/getFilePath';
 import { Cache } from '../../../lib/cache';
 
-const createUser = catchAsync(async (req: Request, res: Response) => {
+const createUser = catchAsync(async (req, res) => {
   await UserService.createUserFromDb(req.body);
 
   // await Cache.delByPattern('users:*');
@@ -20,7 +20,7 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getAllUser = catchAsync(async (req: Request, res: Response) => {
+const getAllUser = catchAsync(async (req, res) => {
   const result = await UserService.getAllUsers(req.query);
 
   sendResponse(res, {
@@ -37,7 +37,7 @@ const getAllUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getUserProfile = catchAsync(async (req: Request, res: Response) => {
+const getUserProfile = catchAsync(async (req, res) => {
   const user = req.user;
   const result = await UserService.getUserProfileFromDB(user);
 
@@ -50,7 +50,7 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 //update profile
-const updateProfile = catchAsync(async (req: Request, res: Response) => {
+const updateProfile = catchAsync(async (req, res) => {
   const user = req.user;
 
   const result = await UserService.updateProfileToDB(user, req.body);
@@ -65,8 +65,8 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getSingleUser = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserService.getSingleUser(req.params.id);
+const getSingleUser = catchAsync(async (req, res) => {
+  const result = await UserService.getSingleUser(req.user.id, req.params.id);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -76,7 +76,7 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 // search by phone number
-const searchByPhone = catchAsync(async (req: Request, res: Response) => {
+const searchByPhone = catchAsync(async (req, res) => {
   const searchTerm = req.query.searchTerm;
   const userId = req?.user?.id;
 

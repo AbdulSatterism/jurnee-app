@@ -40,7 +40,6 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     lat,
     lng,
     maxDistance,
-    subcategory,
     minPrice,
     maxPrice,
   } = query;
@@ -59,10 +58,6 @@ const getAllPosts = async (query: IQuery, userId: string) => {
 
   // Category filter
   if (category) filter.category = { $regex: new RegExp(category, 'i') };
-  //  Subcategory filter
-  if (subcategory) {
-    filter.subcategory = { $regex: new RegExp(subcategory, 'i') };
-  }
 
   // Price filter
   if (minPrice || maxPrice) {

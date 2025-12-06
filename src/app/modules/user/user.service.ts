@@ -13,6 +13,8 @@ import { User } from './user.model';
 
 import AppError from '../../errors/AppError';
 import { deleteFromCloudinary } from '../../../helpers/cloudinaryHelper';
+import { Types } from 'mongoose';
+import { Follower } from '../follower/follower.model';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
@@ -117,9 +119,39 @@ const updateProfileToDB = async (
   return updateDoc;
 };
 
-const getSingleUser = async (id: string): Promise<IUser | null> => {
-  const result = await User.findById(id);
-  return result;
+const getSingleUser = async (loginUser: string, userId: string) => {
+  const loginUserId = new Types.ObjectId(loginUser);
+  const targetUserId = new Types.ObjectId(userId);
+
+  const [user, followRelation] = await Promise.all([
+    User.findById(targetUserId).lean(), // target profile user
+    Follower.findOne({
+      followed: loginUserId, // me
+      follower: targetUserId, // the user I'm exploring
+    }).lean(),
+  ]);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Default: not following
+  let isFollow = false;
+
+  // If I'm checking my own profile, keep isFollow = false
+  if (!loginUserId.equals(targetUserId)) {
+    if (followRelation) {
+      // if exist followRelation and isFollower: true → true
+      // if exist followRelation and isFollower: false → false
+      isFollow = followRelation.isFollower === true;
+    }
+  }
+
+  // Attach `isFollow` field to response
+  return {
+    ...user,
+    isFollow,
+  };
 };
 
 // search user by phone
