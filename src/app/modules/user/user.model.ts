@@ -5,6 +5,7 @@ import { model, Schema } from 'mongoose';
 import config from '../../../config';
 import { IUser, UserModal } from './user.interface';
 import AppError from '../../errors/AppError';
+import { getStripeAccountId } from '../payment/utils';
 
 const userSchema = new Schema<IUser, UserModal>(
   {
@@ -113,6 +114,15 @@ const userSchema = new Schema<IUser, UserModal>(
       },
       select: 0,
     },
+    stripeAccountId: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    isStripeConnected: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );
@@ -158,6 +168,8 @@ userSchema.pre('save', async function (next) {
     Number(config.bcrypt_salt_rounds),
   );
   next();
+
+  this.stripeAccountId ??= await getStripeAccountId(this.email);
 });
 
 export const User = model<IUser, UserModal>('User', userSchema);

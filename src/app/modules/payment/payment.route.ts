@@ -22,4 +22,6 @@ router.get(
   PaymentController.singlePayment,
 );
 
+router.all('/stripe/connect', PaymentController.stripeConnect);
+
 export const PaymentRoutes = router;

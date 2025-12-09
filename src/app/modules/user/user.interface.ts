@@ -31,6 +31,8 @@ export type IUser = {
     oneTimeCode: number;
     expireAt: Date;
   };
+  stripeAccountId?: string;
+  isStripeConnected?: boolean;
 };
 
 export type UserModal = {

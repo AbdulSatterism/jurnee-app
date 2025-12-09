@@ -7,7 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 import { Payment } from '../payment/payment.model';
 import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
-import { captureOrder, payoutToHost } from '../payment/utils';
+import { captureOrder, transferMoney } from '../payment/utils';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { IPayoutConfirmation } from '../../../types/emailTamplate';
@@ -186,12 +186,18 @@ const completeBooking = async (userId: string, bookingId: string) => {
     // perform external side-effects after successful commit
     const payoutAmount = (booking.amount || 0) - 8; // deduct platform fee
 
-    await payoutToHost(
-      serviceProvider.paypalAccount as string,
-      payoutAmount,
-      booking.service.toString(),
-      booking._id?.toString() || '',
-    );
+    // await payoutToHost(
+    //   serviceProvider.paypalAccount as string,
+    //   payoutAmount,
+    //   booking.service.toString(),
+    //   booking._id?.toString() || '',
+    // );
+    //? use stripe transfer money method
+    await transferMoney({
+      amount: payoutAmount,
+      description: `Payout for booking ${booking._id}`,
+      stripeAccountId: serviceProvider.stripeAccountId as string,
+    });
 
     const emailValues: IPayoutConfirmation = {
       email: serviceProvider.paypalAccount as string,
