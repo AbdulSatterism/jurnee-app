@@ -12,6 +12,12 @@ router.post(
   PaymentController.createPayment,
 );
 
+router.post(
+  '/stripe-intent',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  PaymentController.createStripePaymentIntent,
+);
+
 //* get all payment and price
 router.get('/', auth(USER_ROLES.ADMIN), PaymentController.allPayment);
 

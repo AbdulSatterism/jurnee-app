@@ -6,6 +6,25 @@ import AppError from '../../errors/AppError';
 import { createPaymentIntent } from './utils';
 import { User } from '../user/user.model';
 
+const createStripePaymentIntent = catchAsync(async (req, res) => {
+  const userId: string = req.user.id;
+  const email: string = req.user.email;
+
+  const { serviceId, amount } = req.body;
+
+  try {
+    const sessionUrl = await PaymentService.createStripePaymentIntent(
+      userId,
+      email,
+      serviceId,
+      amount,
+    );
+    res.status(200).json({ url: sessionUrl });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create checkout session' });
+  }
+});
+
 const createPayment = catchAsync(async (req, res) => {
   const userId = req?.user?.id;
 
@@ -86,4 +105,5 @@ export const PaymentController = {
   singlePayment,
   createPayment,
   stripeConnect,
+  createStripePaymentIntent,
 };

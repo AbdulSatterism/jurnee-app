@@ -186,6 +186,7 @@ const completeBooking = async (userId: string, bookingId: string) => {
     // perform external side-effects after successful commit
     const payoutAmount = (booking.amount || 0) - 8; // deduct platform fee
 
+    //? for paypal payout
     // await payoutToHost(
     //   serviceProvider.paypalAccount as string,
     //   payoutAmount,
