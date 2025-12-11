@@ -37,6 +37,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     category,
     search,
     date,
+    dateTime,
     lat,
     lng,
     maxDistance,
@@ -66,7 +67,6 @@ const getAllPosts = async (query: IQuery, userId: string) => {
       ...(maxPrice ? { $lte: Number(maxPrice) } : {}),
     };
   }
-
   // Date filter
   const now = new Date();
   if (date === 'today') {
@@ -74,6 +74,12 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     filter.endDate = { $gte: now };
   } else if (date === 'upcoming') {
     filter.startDate = { $gt: now };
+  } else if (dateTime) {
+    const inputDateTime = new Date(dateTime);
+
+    if (!isNaN(inputDateTime.getTime())) {
+      filter.startDate = { $eq: inputDateTime };
+    }
   }
 
   // Search (title, description, category, tags)
