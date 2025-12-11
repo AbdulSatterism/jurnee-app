@@ -30,41 +30,10 @@ const createBooking = async (userId: string, payload: Partial<IBooking>) => {
     );
   }
 
-  if (!payload.orderId) {
-    throw new AppError(StatusCodes.BAD_REQUEST, 'Order ID is required');
-  }
-
-  const captureResponse = await captureOrder(payload.orderId);
-
-  if (!captureResponse || captureResponse.status !== 'COMPLETED') {
-    throw new AppError(StatusCodes.PAYMENT_REQUIRED, 'Payment not completed');
-  }
-
-  // Extract capture details
-  const captureId = captureResponse.purchase_units[0].payments.captures[0].id;
-  const paypalEmail = captureResponse.payer?.email_address;
-  const captureStatus = captureResponse.status;
-
   // Start a mongoose transaction session to make DB writes atomic
   const session = await Booking.db.startSession();
   try {
     session.startTransaction();
-
-    await User.findByIdAndUpdate(
-      userId,
-      { paypalAccount: paypalEmail },
-      { session },
-    );
-
-    // Save payment record within the transaction
-    const payment = new Payment({
-      userId,
-      serviceId: payload.service,
-      status: captureStatus,
-      transactionId: captureId,
-      amount: payload.amount,
-    });
-
     // also update service schedule which is Post collection slot to 'BOOKED' status here
 
     await Post.findByIdAndUpdate(
@@ -93,8 +62,6 @@ const createBooking = async (userId: string, payload: Partial<IBooking>) => {
       },
       { session },
     );
-
-    await payment.save({ session });
 
     // Save booking within the transaction
     const booking = new Booking(payload);

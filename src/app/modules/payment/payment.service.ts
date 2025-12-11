@@ -3,6 +3,9 @@ import AppError from '../../errors/AppError';
 import { Payment } from './payment.model';
 import { Post } from '../post/post.model';
 import { stripe } from './utils';
+import Stripe from 'stripe';
+import { Booking } from '../booking/booking.model';
+import { logger } from '../../../shared/logger';
 
 const createStripePaymentIntent = async (
   userId: string,
@@ -99,8 +102,76 @@ const singlePayment = async (id: string) => {
   return isExist;
 };
 
+const handleStripeWebhookService = async (event: Stripe.Event) => {
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session;
+
+      const { amount_total, metadata, payment_intent } = session;
+      const userId = metadata?.userId;
+      const serviceId = metadata?.serviceId;
+
+      const amountTotal = (amount_total ?? 0) / 100;
+
+      const bookingId = session?.metadata?.bookingId;
+
+      // const paymentRecord = new Payment({
+      //   appointmentPrice: amountTotal, // Convert from cents to currency
+      //   userId: new Types.ObjectId(userId),
+      //   appointmentId: isAppointment,
+      //   transactionId: payment_intent,
+      //   status: 'COMPLETED',
+      // });
+
+      // Save payment record within the transaction
+      const payment = new Payment({
+        userId,
+        serviceId,
+        status: 'COMPLETED',
+        transactionId: payment_intent,
+        amount: amountTotal,
+      });
+
+      await payment.save();
+
+      //* update booking status
+      await Booking.findByIdAndUpdate(
+        bookingId,
+        { status: 'PROGRESS' },
+        { new: true },
+      );
+
+      break;
+    }
+
+    case 'checkout.session.async_payment_failed': {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const { client_secret } = session;
+      const payment = await Payment.findOne({ client_secret });
+      if (payment) {
+        payment.status = 'FAILED';
+        await payment.save();
+      }
+
+      const bookingId = session?.metadata?.bookingId;
+      //* update booking status if failed
+      await Booking.findByIdAndUpdate(
+        bookingId,
+        { status: 'FAILED' },
+        { new: true },
+      );
+
+      break;
+    }
+
+    default:
+      logger.warn(`Unhandled event type ${event.type}`);
+  }
+};
+
 export const PaymentService = {
   allPayments,
   singlePayment,
   createStripePaymentIntent,
+  handleStripeWebhookService,
 };

@@ -4,6 +4,7 @@ import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './routes';
 import { Morgan } from './shared/morgen';
 import notFoundRoute from './app/middlewares/notFoundRoute';
+import { PaymentController } from './app/modules/payment/payment.controller';
 
 const app = express();
 
@@ -27,6 +28,13 @@ app.use(express.static('uploads'));
 
 //router
 app.use('/api/v1', router);
+
+//webhook
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  PaymentController.paymentStripeWebhookController,
+);
 
 //live response
 app.get('/', (req: Request, res: Response) => {
