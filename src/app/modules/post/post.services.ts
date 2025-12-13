@@ -86,20 +86,6 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     }
   }
 
-  let ratingMatchStage = {};
-
-  if (rating) {
-    const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
-
-    ratingMatchStage = {
-      $match: {
-        $expr: {
-          $gte: [{ $avg: '$reviews.rating' }, ratingNum],
-        },
-      },
-    };
-  }
-
   // Search (title, description, category, tags)
   if (search) {
     const regex = new RegExp(search, 'i');
@@ -115,6 +101,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   const userLat = userLocation?.lat || (lat ? parseFloat(lat) : null);
   const userLng = userLocation?.lng || (lng ? parseFloat(lng) : null);
   const maxDist = maxDistance ? parseFloat(maxDistance) : 50000; // default 50km
+  const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
 
   const geoNearStage =
     userLat && userLng
@@ -129,6 +116,20 @@ const getAllPosts = async (query: IQuery, userId: string) => {
           },
         ]
       : [];
+
+  // let ratingMatchStage = {};
+
+  // if (rating) {
+  //   const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
+
+  //   ratingMatchStage = {
+  //     $match: {
+  //       $expr: {
+  //         $gte: [{ $avg: '$reviews.rating' }, ratingNum],
+  //       },
+  //     },
+  //   };
+  // }
 
   // Main aggregation pipeline
   const pipeline: any[] = [
@@ -155,7 +156,17 @@ const getAllPosts = async (query: IQuery, userId: string) => {
       },
     },
 
-    ratingMatchStage,
+    ...(rating
+      ? [
+          {
+            $match: {
+              $expr: {
+                $gte: [{ $avg: '$reviews.rating' }, ratingNum],
+              },
+            },
+          },
+        ]
+      : []),
 
     {
       $lookup: {
