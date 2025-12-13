@@ -11,6 +11,7 @@ const createStripePaymentIntent = async (
   userId: string,
   email: string,
   serviceId: string,
+  bookingId: string,
   amount: number,
 ) => {
   const isSeviceExist = await Post.findById(serviceId);
@@ -46,6 +47,7 @@ const createStripePaymentIntent = async (
       metadata: {
         userId,
         serviceId,
+        bookingId,
       },
       customer_email: email,
     });
@@ -114,14 +116,6 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
       const amountTotal = (amount_total ?? 0) / 100;
 
       const bookingId = session?.metadata?.bookingId;
-
-      // const paymentRecord = new Payment({
-      //   appointmentPrice: amountTotal, // Convert from cents to currency
-      //   userId: new Types.ObjectId(userId),
-      //   appointmentId: isAppointment,
-      //   transactionId: payment_intent,
-      //   status: 'COMPLETED',
-      // });
 
       // Save payment record within the transaction
       const payment = new Payment({

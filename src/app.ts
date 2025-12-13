@@ -20,6 +20,13 @@ app.use(
   }),
 );
 
+//webhook
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  PaymentController.paymentStripeWebhookController,
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -29,17 +36,10 @@ app.use(express.static('uploads'));
 //router
 app.use('/api/v1', router);
 
-//webhook
-app.post(
-  '/webhook',
-  express.raw({ type: 'application/json' }),
-  PaymentController.paymentStripeWebhookController,
-);
-
 //live response
 app.get('/', (req: Request, res: Response) => {
   res.send(
-    '<h1 style="text-align:center; color:#A55FEF; font-family:Verdana;">Hay Ozzy how can i assist you</h1>',
+    '<h1 style="text-align:center; color:#A55FEF; font-family:Verdana;">Jurnee start here....</h1>',
   );
 });
 

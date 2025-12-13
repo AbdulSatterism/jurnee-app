@@ -3,7 +3,6 @@ import { IBooking } from './booking.interface';
 
 const bookingSchema = new Schema<IBooking>(
   {
-    orderId: { type: String, required: true, unique: true },
     service: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
     provider: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     customer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -14,7 +13,7 @@ const bookingSchema = new Schema<IBooking>(
     serviceDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ['PENDING', 'PROGRESS', 'CANCELLED', 'COMPLETED'],
+      enum: ['PENDING', 'PROGRESS', 'FAILED', 'CANCELLED', 'COMPLETED'],
       default: 'PENDING',
     },
     amount: { type: Number, required: true },

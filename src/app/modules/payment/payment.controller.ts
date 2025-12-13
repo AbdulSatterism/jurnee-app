@@ -12,13 +12,14 @@ const createStripePaymentIntent = catchAsync(async (req, res) => {
   const userId: string = req.user.id;
   const email: string = req.user.email;
 
-  const { serviceId, amount } = req.body;
+  const { serviceId, bookingId, amount } = req.body;
 
   try {
     const sessionUrl = await PaymentService.createStripePaymentIntent(
       userId,
       email,
       serviceId,
+      bookingId,
       amount,
     );
     res.status(200).json({ url: sessionUrl });

@@ -139,8 +139,6 @@ const fileUploader = (fields: UploadFields) =>
             ),
           );
 
-          // console.log('uploadedFiles:', files);
-
           req.body[field] =
             (fields[field]?.maxCount || 1) > 1
               ? uploadedFiles

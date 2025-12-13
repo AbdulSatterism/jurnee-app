@@ -1,7 +1,6 @@
 import { Types } from 'mongoose';
 
 export interface IBooking {
-  orderId: string;
   service: Types.ObjectId;
   provider: Types.ObjectId;
   customer: Types.ObjectId;
@@ -10,7 +9,7 @@ export interface IBooking {
   slotStart: string;
   slotEnd: string;
   serviceDate: Date;
-  status: 'PENDING' | 'PROGRESS' | 'CANCELLED' | 'COMPLETED';
+  status: 'PENDING' | 'PROGRESS' | 'FAILED' | 'CANCELLED' | 'COMPLETED';
   amount: number;
 }
 

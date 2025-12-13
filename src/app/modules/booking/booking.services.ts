@@ -30,52 +30,32 @@ const createBooking = async (userId: string, payload: Partial<IBooking>) => {
     );
   }
 
-  // Start a mongoose transaction session to make DB writes atomic
-  const session = await Booking.db.startSession();
-  try {
-    session.startTransaction();
-    // also update service schedule which is Post collection slot to 'BOOKED' status here
-
-    await Post.findByIdAndUpdate(
-      payload.service,
-      {
-        $set: {
-          'schedule.$[sch].timeSlots.$[ts].available': false,
-        },
+  // Update service schedule slot to unavailable
+  await Post.findByIdAndUpdate(
+    payload.service,
+    {
+      $set: {
+        'schedule.$[sch].timeSlots.$[ts].available': false,
       },
-      {
-        arrayFilters: [
-          { 'sch._id': new Types.ObjectId(payload.scheduleId) },
-          { 'ts._id': new Types.ObjectId(payload.slotId) }, // typo fix if needed: use '_id'
-        ],
-        new: true,
-        session,
-      },
-    );
+    },
+    {
+      arrayFilters: [
+        { 'sch._id': new Types.ObjectId(payload.scheduleId) },
+        { 'ts._id': new Types.ObjectId(payload.slotId) },
+      ],
+      new: true,
+    },
+  );
 
-    // also update service provider earnings in the user collection
+  // Update service provider earnings
+  await User.findByIdAndUpdate(payload.provider, {
+    $inc: { income: payload.amount || 0 },
+  });
 
-    await User.findByIdAndUpdate(
-      payload.provider,
-      {
-        $inc: { income: payload.amount || 0 },
-      },
-      { session },
-    );
+  // Create booking
+  const booking = await Booking.create(payload);
 
-    // Save booking within the transaction
-    const booking = new Booking(payload);
-    await booking.save({ session });
-
-    await session.commitTransaction();
-  } catch (err) {
-    await session.abortTransaction();
-    throw err;
-  } finally {
-    session.endSession();
-  }
-
-  return { message: 'Booking created successfully' };
+  return booking;
 };
 
 const completeBooking = async (userId: string, bookingId: string) => {
@@ -171,7 +151,7 @@ const completeBooking = async (userId: string, bookingId: string) => {
       email: serviceProvider.paypalAccount as string,
       amount: payoutAmount,
       status: 'COMPLETED',
-      paypalBatchId: booking.orderId,
+      paypalBatchId: 'TRANSFERRED_VIA_STRIPE',
     };
 
     const hostConfermationMail = emailTemplate.payoutConfirmation(emailValues);
