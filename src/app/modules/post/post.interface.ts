@@ -76,4 +76,5 @@ export interface IQuery {
   minPrice?: string;
   maxPrice?: string;
   dateTime?: string;
+  rating?: number;
 }

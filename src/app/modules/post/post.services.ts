@@ -41,6 +41,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     lat,
     lng,
     maxDistance,
+    rating,
     minPrice,
     maxPrice,
   } = query;
@@ -55,7 +56,9 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   const skip = (pageNum - 1) * pageSize;
 
   // Base filter
-  const filter: FilterQuery<IPost> = { status: 'PUBLISHED' };
+  const filter: FilterQuery<IPost> = {
+    status: 'PUBLISHED',
+  };
 
   // Category filter
   if (category) filter.category = { $regex: new RegExp(category, 'i') };
@@ -67,6 +70,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
       ...(maxPrice ? { $lte: Number(maxPrice) } : {}),
     };
   }
+
   // Date filter
   const now = new Date();
   if (date === 'today') {
@@ -80,6 +84,20 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     if (!isNaN(inputDateTime.getTime())) {
       filter.startDate = { $eq: inputDateTime };
     }
+  }
+
+  let ratingMatchStage = {};
+
+  if (rating) {
+    const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
+
+    ratingMatchStage = {
+      $match: {
+        $expr: {
+          $gte: [{ $avg: '$reviews.rating' }, ratingNum],
+        },
+      },
+    };
   }
 
   // Search (title, description, category, tags)
@@ -136,6 +154,8 @@ const getAllPosts = async (query: IQuery, userId: string) => {
         reviewsCount: { $size: '$reviews' }, // Count the number of reviews
       },
     },
+
+    ratingMatchStage,
 
     {
       $lookup: {
