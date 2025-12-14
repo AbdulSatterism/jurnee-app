@@ -64,22 +64,34 @@ const allPayments = async (query: Record<string, unknown>) => {
   const size = parseInt(limit as string) || 10;
   const skip = (pages - 1) * size;
 
-  const [result, total] = await Promise.all([
+  const [result, total, totalAmount] = await Promise.all([
     Payment.find()
       .populate([
-        { path: 'userId', select: 'name email paypalAccount' },
+        { path: 'userId', select: 'name email ' },
         { path: 'serviceId', select: 'title amount image' },
       ])
       .skip(skip)
       .limit(size)
       .lean(),
     Payment.countDocuments(),
+    Payment.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: '$amount' },
+        },
+      },
+    ]),
   ]);
 
   const totalPage = Math.ceil(total / size);
 
   return {
-    data: result,
+    data: {
+      data: result,
+      totalAmount: totalAmount[0]?.totalAmount || 0,
+    },
+
     meta: {
       page: pages,
       limit: size,
@@ -92,7 +104,7 @@ const allPayments = async (query: Record<string, unknown>) => {
 const singlePayment = async (id: string) => {
   const isExist = await Payment.findById(id)
     .populate([
-      { path: 'userId', select: 'name email paypalAccount' },
+      { path: 'userId', select: 'name email' },
       { path: 'serviceId', select: 'title amount image' },
     ])
     .lean();
