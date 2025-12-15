@@ -41,9 +41,9 @@ const createStripePaymentIntent = async (
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: 'http://localhost:3000/payment/success',
+      success_url: 'https://joinjurnee.com/', //todo: change this later
 
-      cancel_url: 'http://localhost:3000/payment/failure',
+      cancel_url: 'https://joinjurnee.com/', //todo: change this later
       metadata: {
         userId,
         serviceId,
