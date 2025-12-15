@@ -193,7 +193,7 @@ const upcommingBookings = async (
       serviceDate: { $gt: currentDate },
     })
       .populate('service', 'title category ')
-      .populate('provider', 'name email address')
+      .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
     Booking.countDocuments({
@@ -231,7 +231,7 @@ const pastBookings = async (userId: string, query: Record<string, any>) => {
       serviceDate: { $lt: currentDate },
     })
       .populate('service', 'title category ')
-      .populate('provider', 'name email address')
+      .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
     Booking.countDocuments({
@@ -270,7 +270,7 @@ const incompletedBookingsByProvider = async (
       status: { $ne: 'COMPLETED' },
     })
       .populate('service', 'title category ')
-      .populate('provider', 'name email address')
+      .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
     Booking.countDocuments({
@@ -309,7 +309,7 @@ const completedBookingsByProvider = async (
       status: 'COMPLETED',
     })
       .populate('service', 'title category ')
-      .populate('provider', 'name email address')
+      .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
     Booking.countDocuments({
