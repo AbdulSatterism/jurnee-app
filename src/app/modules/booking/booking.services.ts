@@ -55,7 +55,14 @@ const createBooking = async (userId: string, payload: Partial<IBooking>) => {
   // Create booking
   const booking = await Booking.create(payload);
 
-  return booking;
+  let result;
+  if (booking) {
+    result = await Booking.findById(booking._id)
+      .populate('service', 'title category ')
+      .populate('provider', 'name email address');
+  }
+
+  return result;
 };
 
 const completeBooking = async (userId: string, bookingId: string) => {
