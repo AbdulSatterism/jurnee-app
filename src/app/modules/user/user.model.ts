@@ -11,7 +11,7 @@ const userSchema = new Schema<IUser, UserModal>(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
@@ -21,9 +21,8 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       select: 0,
-      minlength: 4,
     },
     address: {
       type: String,
@@ -32,9 +31,11 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     googleId: {
       type: String,
+      default: '',
     },
     appleId: {
       type: String,
+      default: '',
     },
     phone: {
       type: String,
@@ -163,10 +164,12 @@ userSchema.pre('save', async function (next) {
   }
 
   //password hash
-  this.password = await bcrypt.hash(
-    this.password,
-    Number(config.bcrypt_salt_rounds),
-  );
+  if (this.password) {
+    this.password = (await bcrypt.hash(
+      this.password,
+      Number(config.bcrypt_salt_rounds),
+    )) as string;
+  }
   next();
 
   this.stripeAccountId ??= await getStripeAccountId(this.email);

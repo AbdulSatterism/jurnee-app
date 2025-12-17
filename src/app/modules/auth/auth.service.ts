@@ -43,6 +43,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
   //check match password
   if (
     password &&
+    isExistUser?.password &&
     !(await User.isMatchPassword(password, isExistUser.password))
   ) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
@@ -250,10 +251,11 @@ const changePasswordToDB = async (
   }
 
   //current password match
-  if (
-    currentPassword &&
-    !(await User.isMatchPassword(currentPassword, isExistUser.password))
-  ) {
+  //current password match
+  if (!currentPassword || !isExistUser.password) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Password is required');
+  }
+  if (!(await User.isMatchPassword(currentPassword, isExistUser.password))) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Password is incorrect');
   }
 
@@ -463,6 +465,10 @@ const appleLogin = async (payload: { token: string }) => {
       appleId: appleData.sub,
       role: 'USER' as const,
       verified: true,
+      location: {
+        type: 'Point',
+        coordinates: [0, 0],
+      },
     };
 
     // Step 3 — Find or create user
