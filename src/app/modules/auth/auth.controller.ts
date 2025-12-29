@@ -144,6 +144,18 @@ const appleLogin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const accessToken = catchAsync(async (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
+
+  const result = await AuthService.accessToken(token);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'new token provided',
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -155,4 +167,5 @@ export const AuthController = {
   resendVerificationEmail,
   googleLogin,
   appleLogin,
+  accessToken,
 };

@@ -525,6 +525,39 @@ const appleLogin = async (payload: { token: string }) => {
   }
 };
 
+// generate access token from refresh token by cookie
+
+const accessToken = async (token: string) => {
+  // now check if the token is provided
+  if (!token) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Token is required!');
+  }
+
+  const verifyUser = jwtHelper.verifyToken(
+    token,
+    config.jwt.jwtRefreshSecret as Secret,
+  );
+
+  const isExistUser = await User.findById(verifyUser?.id);
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.UNAUTHORIZED, 'Unauthorized access');
+  }
+
+  const tokenPayload = {
+    id: isExistUser._id,
+    email: isExistUser.email,
+    role: isExistUser.role,
+  };
+
+  const accessToken = jwtHelper.createToken(
+    tokenPayload,
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_expire_in as string,
+  );
+
+  return { accessToken };
+};
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -536,4 +569,5 @@ export const AuthService = {
   resendVerificationEmailToDB,
   googleLogin,
   appleLogin,
+  accessToken,
 };

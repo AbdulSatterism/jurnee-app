@@ -50,4 +50,10 @@ router.post(
 router.post('/google-login', AuthController.googleLogin);
 router.post('/apple-login', AuthController.appleLogin);
 
+router.post(
+  '/access-token',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  AuthController.accessToken,
+);
+
 export const AuthRoutes = router;

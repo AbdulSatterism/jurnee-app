@@ -5,6 +5,7 @@ import router from './routes';
 import { Morgan } from './shared/morgen';
 import notFoundRoute from './app/middlewares/notFoundRoute';
 import { PaymentController } from './app/modules/payment/payment.controller';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -19,6 +20,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// pase cookies
+app.use(cookieParser());
 
 //webhook
 app.post(
