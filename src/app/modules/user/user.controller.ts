@@ -5,7 +5,6 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
-import getFilePath from '../../../shared/getFilePath';
 import { Cache } from '../../../lib/cache';
 import AppError from '../../errors/AppError';
 import { getStripeAccountId, stripe } from '../payment/utils';
@@ -14,7 +13,7 @@ import { User } from './user.model';
 const createUser = catchAsync(async (req, res) => {
   await UserService.createUserFromDb(req.body);
 
-  // await Cache.delByPattern('users:*');
+  await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,
@@ -58,7 +57,7 @@ const updateProfile = catchAsync(async (req, res) => {
 
   const result = await UserService.updateProfileToDB(user, req.body);
 
-  // await Cache.delByPattern('users:*');
+  await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,
@@ -99,7 +98,7 @@ const searchByPhone = catchAsync(async (req, res) => {
 const deleteUser = catchAsync(async (req, res) => {
   const result = await UserService.deleteUser(req.user.id);
 
-  // await Cache.delByPattern('users:*');
+  await Cache.delByPattern('users:*');
 
   sendResponse(res, {
     success: true,

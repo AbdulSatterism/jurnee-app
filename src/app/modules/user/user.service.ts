@@ -141,8 +141,6 @@ const getSingleUser = async (loginUser: string, userId: string) => {
   // If I'm checking my own profile, keep isFollow = false
   if (!loginUserId.equals(targetUserId)) {
     if (followRelation) {
-      // if exist followRelation and isFollower: true → true
-      // if exist followRelation and isFollower: false → false
       isFollow = followRelation.isFollower === true;
     }
   }

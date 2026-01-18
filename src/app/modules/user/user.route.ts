@@ -6,6 +6,7 @@ import fileUploader from '../../middlewares/fileUploadHandler';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 import validateRequest from '../../middlewares/validateRequest';
+import { cacheGet } from '../../middlewares/cacheGet';
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ router.post(
 router.get(
   '/all-user',
   auth(USER_ROLES.ADMIN),
-  // cacheGet('users:all', 120, req => ({ q: req.query })),
+  cacheGet('users:all', 3600, req => ({ q: req.query })),
   UserController.getAllUser,
 );
 
