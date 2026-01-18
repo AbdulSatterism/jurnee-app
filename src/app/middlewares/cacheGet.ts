@@ -5,47 +5,129 @@ import { Cache } from '../../lib/cache';
 import { errorLogger } from '../../shared/logger';
 import chalk from 'chalk';
 
+function normalizeQuery(query: Request['query']) {
+  // stable key order + stable primitive conversion
+  const sortedKeys = Object.keys(query).sort();
+  const normalized: Record<string, any> = {};
+
+  for (const k of sortedKeys) {
+    const v: any = (query as any)[k];
+
+    if (Array.isArray(v)) {
+      normalized[k] = v.map(x => String(x));
+    } else if (v === undefined) {
+      normalized[k] = null;
+    } else {
+      normalized[k] = String(v);
+    }
+  }
+  return normalized;
+}
+
 export const cacheGet =
-  (prefix: string, ttl = 3600, keySelector?: (req: Request) => object) =>
+  (prefix: string, ttlSeconds = 3600, keySelector?: (req: Request) => object) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Only cache GET
     if (req.method !== 'GET') return next();
 
+    // Optional: allow bypass for debugging
+    if (req.headers['x-cache-bypass'] === '1') return next();
+
     try {
-      // Build cache key
       const keyBasis = keySelector
         ? keySelector(req)
-        : { path: req.path, query: req.query };
+        : {
+            path: req.path,
+            query: normalizeQuery(req.query),
+          };
+
       const key = Cache.buildKey(prefix, keyBasis);
 
-      // Try to get cache
+      // Read cache
       const cachedData = await Cache.get<any>(key);
-      if (cachedData) {
-        res.setHeader('X-Cache', 'HIT');
 
+      // IMPORTANT: don't use `if (cachedData)` (breaks for [])
+      if (cachedData !== null && cachedData !== undefined) {
+        res.setHeader('X-Cache', 'HIT');
         res.status(200).json(cachedData);
         return;
       }
 
-      // Wrap res.json to intercept the response body before sending
+      // Intercept response
       const originalJson = res.json.bind(res);
-      res.json = (body: any): Response => {
-        res.setHeader('X-Cache', 'MISS');
 
-        // Async cache set (non-blocking)
-        Cache.set(key, body, ttl).catch(err => {
-          errorLogger.error(chalk.red('Redis cache set error:'), err.message);
-        });
+      res.json = (body: any): Response => {
+        // Only cache successful responses
+        // (avoid caching errors, redirects, etc.)
+        const status = res.statusCode;
+
+        if (status >= 200 && status < 300) {
+          res.setHeader('X-Cache', 'MISS');
+
+          Cache.set(key, body, ttlSeconds).catch((err: any) => {
+            errorLogger.error(
+              chalk.red('Redis cache set error:'),
+              err?.message ?? err,
+            );
+          });
+        } else {
+          res.setHeader('X-Cache', 'BYPASS');
+        }
 
         return originalJson(body);
       };
 
       return next();
-    } catch (error) {
-      if (error instanceof Error)
-        errorLogger.error(
-          chalk.red('Redis cache middleware error:'),
-          error.message,
-        );
+    } catch (err: any) {
+      errorLogger.error(
+        chalk.red('Redis cache middleware error:'),
+        err?.message ?? err,
+      );
       return next();
     }
   };
+
+// export const cacheGet =
+//   (prefix: string, ttl = 3600, keySelector?: (req: Request) => object) =>
+//   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+//     if (req.method !== 'GET') return next();
+
+//     try {
+//       // Build cache key
+//       const keyBasis = keySelector
+//         ? keySelector(req)
+//         : { path: req.path, query: req.query };
+//       const key = Cache.buildKey(prefix, keyBasis);
+
+//       // Try to get cache
+//       const cachedData = await Cache.get<any>(key);
+//       if (cachedData) {
+//         res.setHeader('X-Cache', 'HIT');
+
+//         res.status(200).json(cachedData);
+//         return;
+//       }
+
+//       // Wrap res.json to intercept the response body before sending
+//       const originalJson = res.json.bind(res);
+//       res.json = (body: any): Response => {
+//         res.setHeader('X-Cache', 'MISS');
+
+//         // Async cache set (non-blocking)
+//         Cache.set(key, body, ttl).catch(err => {
+//           errorLogger.error(chalk.red('Redis cache set error:'), err.message);
+//         });
+
+//         return originalJson(body);
+//       };
+
+//       return next();
+//     } catch (error) {
+//       if (error instanceof Error)
+//         errorLogger.error(
+//           chalk.red('Redis cache middleware error:'),
+//           error.message,
+//         );
+//       return next();
+//     }
+//   };
