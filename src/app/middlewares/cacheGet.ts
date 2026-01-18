@@ -6,7 +6,7 @@ import { errorLogger } from '../../shared/logger';
 import chalk from 'chalk';
 
 export const cacheGet =
-  (prefix: string, ttl = 120, keySelector?: (req: Request) => object) =>
+  (prefix: string, ttl = 3600, keySelector?: (req: Request) => object) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.method !== 'GET') return next();
 
