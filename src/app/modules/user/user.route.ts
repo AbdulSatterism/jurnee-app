@@ -37,11 +37,10 @@ router.get(
   UserController.getUserProfile,
 );
 
-// router.get('/get-all-users', auth(USER_ROLES.ADMIN), UserController.getAllUser);
-
 router.get(
   '/get-single-user/:id',
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  cacheGet('users:single', 3600, req => ({ params: req.params })),
   UserController.getSingleUser,
 );
 
@@ -49,7 +48,7 @@ router.get(
 router.get(
   '/user-search',
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  // cacheGet('users:search', 120),
+  cacheGet('users:search', 3600, req => ({ q: req.query })),
   UserController.searchByPhone,
 );
 
