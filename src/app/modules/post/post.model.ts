@@ -40,6 +40,7 @@ const postSchema = new Schema<IPost>(
     likes: { type: Number, default: 0 },
 
     endDate: { type: String, default: null },
+    couponCode: { type: String, default: '' },
 
     // service posts
     price: { type: Number, default: null },

@@ -6,7 +6,7 @@ import fileUploader from '../../middlewares/fileUploadHandler';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 import validateRequest from '../../middlewares/validateRequest';
-import { cacheGet } from '../../middlewares/cacheGet';
+// import { cacheGet } from '../../middlewares/cacheGet';
 
 const router = express.Router();
 
@@ -19,7 +19,7 @@ router.post(
 router.get(
   '/all-user',
   auth(USER_ROLES.ADMIN),
-  cacheGet('users:all', 3600, req => ({ q: req.query })),
+  // cacheGet('users:all', 3600, req => ({ q: req.query })),
   UserController.getAllUser,
 );
 
@@ -40,7 +40,7 @@ router.get(
 router.get(
   '/get-single-user/:id',
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  cacheGet('users:single', 3600, req => ({ params: req.params })),
+  // cacheGet('users:single', 3600, req => ({ params: req.params })),
   UserController.getSingleUser,
 );
 
@@ -48,7 +48,7 @@ router.get(
 router.get(
   '/user-search',
   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  cacheGet('users:search', 3600, req => ({ q: req.query })),
+  // cacheGet('users:search', 3600, req => ({ q: req.query })),
   UserController.searchByPhone,
 );
 

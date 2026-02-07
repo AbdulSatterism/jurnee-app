@@ -38,6 +38,7 @@ const dealValidation = z.object({
     startDate: z.string(),
     endDate: z.string(),
     address: z.string(),
+    couponCode: z.string().optional(),
     location: z.object({
       type: z.literal('Point'),
       coordinates: z.array(z.number()).length(2),

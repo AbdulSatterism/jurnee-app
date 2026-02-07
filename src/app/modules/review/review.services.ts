@@ -13,6 +13,15 @@ const createReview = async (userId: string, payload: Partial<IReview>) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
   }
 
+  // this review only for service post
+
+  if (post.category !== 'service') {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'only service post can be review',
+    );
+  }
+
   const review = await Review.create(payload);
   return review;
 };

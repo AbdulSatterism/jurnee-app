@@ -32,6 +32,7 @@ export interface IPost {
 
   // for deal posts
   endDate?: string;
+  couponCode?: string;
 
   // for service posts
   price?: number;
