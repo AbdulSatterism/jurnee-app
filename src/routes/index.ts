@@ -17,6 +17,8 @@ import { supportRoutes } from '../app/modules/support/support.route';
 import { PaymentRoutes } from '../app/modules/payment/payment.route';
 import { BookingRoutes } from '../app/modules/booking/booking.route';
 import { InterestRoutes } from '../app/modules/interest/interest.route';
+import { CommentRoutes } from '../app/modules/comment/comment.route';
+import { replyRoutes } from '../app/modules/commentReply/commentReply.route';
 
 const router = express.Router();
 
@@ -34,6 +36,8 @@ const apiRoutes = [
   { path: '/save', route: SavedRoutes },
   { path: '/report', route: ReportRoutes },
   { path: '/review', route: ReviewRoutes },
+  { path: '/comments', route: CommentRoutes },
+  { path: '/replies', route: replyRoutes },
   { path: '/chat', route: ChatRoutes },
   { path: '/support', route: supportRoutes },
   { path: '/payments', route: PaymentRoutes },
