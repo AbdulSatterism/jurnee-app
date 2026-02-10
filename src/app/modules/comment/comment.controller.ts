@@ -31,7 +31,21 @@ const allCommentsByPostId = catchAsync(async (req, res) => {
   });
 });
 
+const commentReplyLike = catchAsync(async (req, res) => {
+  const id = req.params.id;
+
+  const userId = req.user.id;
+  const result = await CommentServices.commentReplyLike(id, userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Like incremented successfully',
+    data: result,
+  });
+});
+
 export const CommentController = {
   createComment,
   allCommentsByPostId,
+  commentReplyLike,
 };

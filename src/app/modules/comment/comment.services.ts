@@ -5,6 +5,8 @@ import { StatusCodes } from 'http-status-codes';
 import { Post } from '../post/post.model';
 import AppError from '../../errors/AppError';
 import { Comment } from './comment.model';
+import { User } from '../user/user.model';
+import { Reply } from '../commentReply/commentReply.model';
 
 const createComment = async (userId: string, payload: Partial<IComment>) => {
   payload.userId = new Types.ObjectId(userId);
@@ -151,7 +153,35 @@ const allCommentsByPostId = async (
   };
 };
 
+// like increment in comment and reply comment.
+
+const commentReplyLike = async (id: string, userId: string) => {
+  const userExist = await User.findById(userId);
+
+  if (!userExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const comment = await Comment.findById(id);
+  const reply = await Reply.findById(id);
+
+  if (!comment && !reply) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Comment or reply not found');
+  }
+
+  if (comment) {
+    comment.like = (comment.like ?? 0) + 1;
+    await comment.save();
+    return comment;
+  } else if (reply) {
+    reply.like = (reply.like ?? 0) + 1;
+    await reply.save();
+    return reply;
+  }
+};
+
 export const CommentServices = {
   createComment,
   allCommentsByPostId,
+  commentReplyLike,
 };
