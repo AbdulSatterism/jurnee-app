@@ -6,7 +6,6 @@ import { Post } from '../post/post.model';
 import AppError from '../../errors/AppError';
 import { Comment } from './comment.model';
 import { User } from '../user/user.model';
-import { Reply } from '../commentReply/commentReply.model';
 
 const createComment = async (userId: string, payload: Partial<IComment>) => {
   payload.userId = new Types.ObjectId(userId);
@@ -29,45 +28,158 @@ const createComment = async (userId: string, payload: Partial<IComment>) => {
   return comment;
 };
 
-// get all comment base on specific post id
+const allCommentsByPostId = async (
+  postId: string,
+  userId: string, // required
+  query: Record<string, unknown>,
+) => {
+  const page = parseInt(query.page as string) || 1;
+  const limit = parseInt(query.limit as string) || 10;
+  const skip = (page - 1) * limit;
 
-// const allCommentsByPostId = async (
-//   postId: string,
-//   query: Record<string, unknown>,
-// ) => {
-//   const { page, limit } = query;
-//   const pages = parseInt(page as string) || 1;
-//   const size = parseInt(limit as string) || 10;
-//   const skip = (pages - 1) * size;
+  // validations
+  if (!Types.ObjectId.isValid(postId)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid postId');
+  }
+  if (!Types.ObjectId.isValid(userId)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid userId');
+  }
 
-//   const postExist = await Post.findById(postId);
-//   if (!postExist) {
-//     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
-//   }
+  const [postExist, viewerExist] = await Promise.all([
+    Post.exists({ _id: postId }),
+    User.exists({ _id: userId }),
+  ]);
 
-//   const [result, total] = await Promise.all([
-//     Comment.find({ postId: new Types.ObjectId(postId) })
-//       .populate({ path: 'userId', select: 'name image -_id' })
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(size)
-//       .lean(),
-//     Comment.countDocuments({ postId: new Types.ObjectId(postId) }),
-//   ]);
+  if (!postExist) throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  if (!viewerExist) throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
 
-//   const totalPage = Math.ceil(total / size);
+  const postObjectId = new Types.ObjectId(postId);
+  const viewerObjectId = new Types.ObjectId(userId);
 
-//   return {
-//     data: result,
-//     meta: {
-//       page: pages,
-//       limit: size,
-//       totalPage,
-//       total,
-//     },
-//   };
-// };
+  const [rows, totalArr] = await Promise.all([
+    Comment.aggregate([
+      { $match: { postId: postObjectId } },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
 
+      // comment user
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+          pipeline: [{ $project: { name: 1, image: 1 } }],
+        },
+      },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+      // comment liked by viewer
+      {
+        $lookup: {
+          from: 'commentlikes',
+          let: { commentId: '$_id' },
+          as: 'viewerLike',
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$commentId', '$$commentId'] },
+                    { $eq: ['$userId', viewerObjectId] },
+                  ],
+                },
+              },
+            },
+            { $project: { _id: 1 } },
+            { $limit: 1 },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          liked: { $gt: [{ $size: '$viewerLike' }, 0] },
+        },
+      },
+      { $project: { viewerLike: 0 } },
+
+      // replies + reply liked
+      {
+        $lookup: {
+          from: 'replies',
+          let: { commentId: '$_id' },
+          as: 'reply',
+          pipeline: [
+            { $match: { $expr: { $eq: ['$commentId', '$$commentId'] } } },
+            { $sort: { createdAt: 1 } },
+
+            // reply user
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'user',
+                pipeline: [{ $project: { name: 1, image: 1 } }],
+              },
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+            // reply liked by viewer
+            {
+              $lookup: {
+                from: 'replylikes',
+                let: { replyId: '$_id' },
+                as: 'viewerReplyLike',
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$replyId', '$$replyId'] },
+                          { $eq: ['$userId', viewerObjectId] },
+                        ],
+                      },
+                    },
+                  },
+                  { $project: { _id: 1 } },
+                  { $limit: 1 },
+                ],
+              },
+            },
+            {
+              $addFields: {
+                liked: { $gt: [{ $size: '$viewerReplyLike' }, 0] },
+              },
+            },
+            { $project: { viewerReplyLike: 0, userId: 0 } },
+          ],
+        },
+      },
+
+      // clean top-level ids
+      { $project: { userId: 0 } },
+    ]),
+    Comment.aggregate([
+      { $match: { postId: postObjectId } },
+      { $count: 'total' },
+    ]),
+  ]);
+
+  const total = totalArr[0]?.total ?? 0;
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    data: rows.map((c: any) => ({
+      ...c,
+      reply: c.reply?.map((r: any) => ({ ...r })) ?? [],
+    })),
+    meta: { page, limit, totalPage, total },
+  };
+};
+
+/*
 const allCommentsByPostId = async (
   postId: string,
   query: Record<string, unknown>,
@@ -153,35 +265,8 @@ const allCommentsByPostId = async (
   };
 };
 
-// like increment in comment and reply comment.
-
-const commentReplyLike = async (id: string, userId: string) => {
-  const userExist = await User.findById(userId);
-
-  if (!userExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-  }
-
-  const comment = await Comment.findById(id);
-  const reply = await Reply.findById(id);
-
-  if (!comment && !reply) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Comment or reply not found');
-  }
-
-  if (comment) {
-    comment.like = (comment.like ?? 0) + 1;
-    await comment.save();
-    return comment;
-  } else if (reply) {
-    reply.like = (reply.like ?? 0) + 1;
-    await reply.save();
-    return reply;
-  }
-};
-
+*/
 export const CommentServices = {
   createComment,
   allCommentsByPostId,
-  commentReplyLike,
 };

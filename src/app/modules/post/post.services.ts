@@ -117,20 +117,6 @@ const getAllPosts = async (query: IQuery, userId: string) => {
         ]
       : [];
 
-  // let ratingMatchStage = {};
-
-  // if (rating) {
-  //   const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
-
-  //   ratingMatchStage = {
-  //     $match: {
-  //       $expr: {
-  //         $gte: [{ $avg: '$reviews.rating' }, ratingNum],
-  //       },
-  //     },
-  //   };
-  // }
-
   // Main aggregation pipeline
   const pipeline: any[] = [
     ...geoNearStage,

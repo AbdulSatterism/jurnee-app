@@ -16,7 +16,12 @@ const createComment = catchAsync(async (req, res) => {
 
 const allCommentsByPostId = catchAsync(async (req, res) => {
   const postId = req.params.postId;
-  const result = await CommentServices.allCommentsByPostId(postId, req.query);
+  const userId = req.user.id;
+  const result = await CommentServices.allCommentsByPostId(
+    postId,
+    userId,
+    req.query,
+  );
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -31,21 +36,20 @@ const allCommentsByPostId = catchAsync(async (req, res) => {
   });
 });
 
-const commentReplyLike = catchAsync(async (req, res) => {
-  const id = req.params.id;
+// const commentReplyLike = catchAsync(async (req, res) => {
+//   const id = req.params.id;
 
-  const userId = req.user.id;
-  const result = await CommentServices.commentReplyLike(id, userId);
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'Like incremented successfully',
-    data: result,
-  });
-});
+//   const userId = req.user.id;
+//   const result = await CommentServices.commentReplyLike(id, userId);
+//   sendResponse(res, {
+//     success: true,
+//     statusCode: StatusCodes.OK,
+//     message: 'Like incremented successfully',
+//     data: result,
+//   });
+// });
 
 export const CommentController = {
   createComment,
   allCommentsByPostId,
-  commentReplyLike,
 };

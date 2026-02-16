@@ -21,10 +21,10 @@ router.get(
   CommentController.allCommentsByPostId,
 );
 
-router.post(
-  '/like/:id',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  CommentController.commentReplyLike,
-);
+// router.post(
+//   '/like/:id',
+//   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+//   CommentController.commentReplyLike,
+// );
 
 export const CommentRoutes = router;
