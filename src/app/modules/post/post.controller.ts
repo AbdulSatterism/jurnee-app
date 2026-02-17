@@ -105,6 +105,23 @@ const myPost = catchAsync(async (req, res) => {
   });
 });
 
+const myService = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const result = await PostService.myService(userId, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'my all services here',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 const userPost = catchAsync(async (req, res) => {
   const userId = req.params.id;
   const result = await PostService.userPost(userId, req.query);
@@ -223,6 +240,7 @@ export const PostController = {
   postDetails,
   joinEvent,
   myJoinEvent,
+  myService,
   myPost,
   updatePost,
   userPost,

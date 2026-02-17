@@ -143,6 +143,12 @@ router.get(
 );
 
 router.get(
+  '/my-service',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.myService,
+);
+
+router.get(
   '/user-post/:id',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   PostController.userPost,

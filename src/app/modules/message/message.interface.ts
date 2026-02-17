@@ -5,4 +5,6 @@ export interface IMessage {
   sender: Types.ObjectId;
   read?: boolean;
   message?: string;
+  offer?: Types.ObjectId;
+  type?: 'text' | 'offer';
 }
