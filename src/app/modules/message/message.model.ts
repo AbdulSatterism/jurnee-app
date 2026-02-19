@@ -6,7 +6,7 @@ const messageSchema = new Schema<IMessage>(
     chat: { type: Schema.Types.ObjectId, ref: 'Chat', required: true },
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     message: { type: String, default: '' },
-    offer: { type: Schema.Types.ObjectId, ref: 'Offer', default: '' },
+    offer: { type: Schema.Types.ObjectId, ref: 'Offer', default: null },
     type: { type: String, enum: ['text', 'offer'], default: 'text' },
     read: { type: Boolean, default: false },
   },

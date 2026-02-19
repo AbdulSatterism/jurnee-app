@@ -198,10 +198,17 @@ const getChatInboxMessages = async (
 
   // Fetch messages for the chat with pagination
   const messages = await Message.find({ chat: chatId })
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
     .populate('sender', 'name image _id')
-    .sort({ createdAt: -1 });
+    .populate({
+      path: 'offer',
+      populate: {
+        path: 'service',
+        select: 'image title description location category subcategory',
+      },
+    });
 
   //  read:false make it read:true
   await Message.updateMany({ chat: chatId, read: false }, { read: true });

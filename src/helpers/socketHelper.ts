@@ -8,19 +8,25 @@ import chalk from 'chalk';
 
 const socket = (io: Server) => {
   io.on('connection', socket => {
-    console.log('A user connected:', socket.id);
+    logger.info(chalk.blue('A user connected'));
 
     // Join a chat room
     socket.on('join', chat => {
       socket.join(chat);
-      console.log(`User joined room: ${chat}`);
+      logger.info(chalk.green(`User joined chat: ${chat}`));
     });
 
     socket.on(
       'send-message',
-      async (payload: { chat: string; sender: string; message?: string }) => {
+      async (payload: {
+        chat: string;
+        sender: string;
+        message?: string;
+        type?: string;
+        offer?: string;
+      }) => {
         try {
-          const { chat, sender, message } = payload;
+          const { chat, sender, message, type, offer } = payload;
 
           if (!chat || !sender) throw new Error('chat and sender are required');
 
@@ -29,6 +35,8 @@ const socket = (io: Server) => {
             chat,
             sender,
             message,
+            type,
+            offer,
           });
 
           const populatedMessage = await Message.findById(

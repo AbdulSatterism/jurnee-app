@@ -19,6 +19,7 @@ import { BookingRoutes } from '../app/modules/booking/booking.route';
 import { InterestRoutes } from '../app/modules/interest/interest.route';
 import { CommentRoutes } from '../app/modules/comment/comment.route';
 import { replyRoutes } from '../app/modules/commentReply/commentReply.route';
+import { OfferRoute } from '../app/modules/offer/offer.route';
 
 const router = express.Router();
 
@@ -43,6 +44,7 @@ const apiRoutes = [
   { path: '/payments', route: PaymentRoutes },
   { path: '/bookings', route: BookingRoutes },
   { path: '/interest', route: InterestRoutes },
+  { path: '/offer', route: OfferRoute },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
