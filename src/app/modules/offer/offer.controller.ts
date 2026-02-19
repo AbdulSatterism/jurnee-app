@@ -13,6 +13,34 @@ const createOffer = catchAsync(async (req, res) => {
   });
 });
 
+const acceptOffer = catchAsync(async (req, res) => {
+  const { offerId, customerId } = req.body;
+
+  const result = await OfferService.acceptOffer(offerId, customerId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Offer accepted successfully',
+    data: result,
+  });
+});
+
+const rejectOffer = catchAsync(async (req, res) => {
+  const { offerId, customerId } = req.body;
+
+  const result = await OfferService.rejectOffer(offerId, customerId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Offer rejected successfully',
+    data: result,
+  });
+});
+
 export const OfferController = {
   createOffer,
+  acceptOffer,
+  rejectOffer,
 };

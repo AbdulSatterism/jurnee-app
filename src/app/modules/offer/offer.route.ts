@@ -11,4 +11,16 @@ router.post(
   OfferController.createOffer,
 );
 
+router.post(
+  '/accept',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.acceptOffer,
+);
+
+router.post(
+  '/reject',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.rejectOffer,
+);
+
 export const OfferRoute = router;
