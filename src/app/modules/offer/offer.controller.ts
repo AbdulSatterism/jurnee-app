@@ -108,6 +108,19 @@ const completedOffersByProvider = catchAsync(async (req, res) => {
   });
 });
 
+const completeOffer = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { offerId, amount } = req.body;
+  const result = await OfferService.completeOffer(userId, offerId, amount);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Offer completed successfully',
+    data: result,
+  });
+});
+
 export const OfferController = {
   createOffer,
   acceptOffer,
@@ -116,4 +129,5 @@ export const OfferController = {
   pastOffers,
   incompletedOffersByProvider,
   completedOffersByProvider,
+  completeOffer,
 };

@@ -354,9 +354,10 @@ const boostService = async (userId: string, payload: IBoost) => {
   serviceExists.boost = true;
   await serviceExists.save();
 
+  //TODO: need to  update payment field
   const payment: IPayment = {
     userId: new Types.ObjectId(userId),
-    serviceId: serviceExists._id,
+    offerId: serviceExists._id,
     status: captureStatus,
     transactionId: captureId,
     amount: payload.amount,

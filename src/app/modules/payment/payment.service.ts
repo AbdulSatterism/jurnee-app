@@ -1,23 +1,22 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import { Payment } from './payment.model';
-import { Post } from '../post/post.model';
 import { stripe } from './utils';
 import Stripe from 'stripe';
-import { Booking } from '../booking/booking.model';
 import { logger } from '../../../shared/logger';
+import { Offer } from '../offer/offer.model';
+import { User } from '../user/user.model';
 
 const createStripePaymentIntent = async (
   userId: string,
   email: string,
-  serviceId: string,
-  bookingId: string,
+  offerId: string,
   amount: number,
 ) => {
-  const isSeviceExist = await Post.findById(serviceId);
+  const isOfferExist = await Offer.findById(offerId);
 
-  if (!isSeviceExist) {
-    throw new AppError(StatusCodes.BAD_GATEWAY, 'Service is not found!');
+  if (!isOfferExist) {
+    throw new AppError(StatusCodes.BAD_GATEWAY, 'Offer is not found!');
   }
 
   try {
@@ -26,8 +25,8 @@ const createStripePaymentIntent = async (
         price_data: {
           currency: 'usd',
           product_data: {
-            name: 'Service Payment',
-            description: `Payment for service ${serviceId}`,
+            name: 'Offer Payment',
+            description: `Payment for offer ${offerId}`,
           },
           unit_amount: amount * 100,
         },
@@ -46,8 +45,8 @@ const createStripePaymentIntent = async (
       cancel_url: 'https://joinjurnee.com/', //todo: change this later
       metadata: {
         userId,
-        serviceId,
-        bookingId,
+        offerId,
+        providerId: isOfferExist.provider.toString(),
       },
       customer_email: email,
     });
@@ -68,7 +67,7 @@ const allPayments = async (query: Record<string, unknown>) => {
     Payment.find()
       .populate([
         { path: 'userId', select: 'name email ' },
-        { path: 'serviceId', select: 'title amount image' },
+        { path: 'offerId', select: 'title amount image' },
       ])
       .skip(skip)
       .limit(size)
@@ -105,7 +104,7 @@ const singlePayment = async (id: string) => {
   const isExist = await Payment.findById(id)
     .populate([
       { path: 'userId', select: 'name email' },
-      { path: 'serviceId', select: 'title amount image' },
+      { path: 'offerId', select: 'title amount image' },
     ])
     .lean();
 
@@ -123,16 +122,15 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
 
       const { amount_total, metadata, payment_intent } = session;
       const userId = metadata?.userId;
-      const serviceId = metadata?.serviceId;
+      const offerId = metadata?.offerId;
+      const providerId = metadata?.providerId;
 
       const amountTotal = (amount_total ?? 0) / 100;
-
-      const bookingId = session?.metadata?.bookingId;
 
       // Save payment record within the transaction
       const payment = new Payment({
         userId,
-        serviceId,
+        offerId,
         status: 'COMPLETED',
         transactionId: payment_intent,
         amount: amountTotal,
@@ -140,10 +138,18 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
 
       await payment.save();
 
-      //* update booking status
-      await Booking.findByIdAndUpdate(
-        bookingId,
-        { status: 'PROGRESS' },
+      //* update offer status
+      await Offer.findByIdAndUpdate(
+        offerId,
+        { status: 'accepted' },
+        { new: true },
+      );
+
+      // update provider income
+
+      await User.findByIdAndUpdate(
+        providerId,
+        { $inc: { income: amountTotal } },
         { new: true },
       );
 
@@ -159,11 +165,11 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
         await payment.save();
       }
 
-      const bookingId = session?.metadata?.bookingId;
-      //* update booking status if failed
-      await Booking.findByIdAndUpdate(
-        bookingId,
-        { status: 'FAILED' },
+      const offerId = session?.metadata?.offerId;
+      //* update offer status if failed
+      await Offer.findByIdAndUpdate(
+        offerId,
+        { status: 'failed' },
         { new: true },
       );
 

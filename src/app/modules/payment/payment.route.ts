@@ -6,11 +6,11 @@ import { PaymentController } from './payment.controller';
 
 const router = express.Router();
 
-router.post(
-  '/intent',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
-  PaymentController.createPayment,
-);
+// router.post(
+//   '/intent',
+//   auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+//   PaymentController.createPayment,
+// );
 
 router.post(
   '/stripe-intent',

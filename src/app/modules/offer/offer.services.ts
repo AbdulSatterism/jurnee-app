@@ -5,6 +5,10 @@ import { IOffer } from './offer.interface';
 import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
 import { Offer } from './offer.model';
+import { transferMoney } from '../payment/utils';
+import { IPayoutConfirmation } from '../../../types/emailTamplate';
+import { emailTemplate } from '../../../shared/emailTemplate';
+import { emailHelper } from '../../../helpers/emailHelper';
 
 const createOffer = async (payload: IOffer) => {
   const validProvider = await User.findById(payload.provider);
@@ -111,94 +115,59 @@ const rejectOffer = async (offerId: string, customerId: string) => {
   return offer;
 };
 
-/*
+const completeOffer = async (
+  userId: string,
+  offerId: string,
+  amount: number,
+) => {
+  const session = await Offer.startSession();
+  session.startTransaction();
 
-const completeBooking = async (userId: string, bookingId: string) => {
-  const session = await Booking.db.startSession();
   try {
-    session.startTransaction();
-
-    const booking = await Booking.findById(bookingId).session(session);
-    if (!booking) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Booking not found');
+    const offer = await Offer.findById(offerId).session(session);
+    if (!offer) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Offer not found');
     }
 
-    if (booking.status === 'COMPLETED') {
+    if (offer.status === 'completed') {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Offer is already completed');
+    }
+
+    if (userId !== offer.customer.toString()) {
       throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'Booking is already completed',
+        StatusCodes.FORBIDDEN,
+        'You are not authorized to complete this offer',
       );
     }
 
-    const serviceProvider = await User.findById(booking.provider).session(
+    const serviceProvider = await User.findById(offer.provider).session(
       session,
     );
     if (!serviceProvider) {
       throw new AppError(StatusCodes.NOT_FOUND, 'Service provider not found');
     }
 
-    // get service provider and check have paypal account or not
-    if (!serviceProvider.paypalAccount) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'Service provider does not have a PayPal account',
-      );
-    }
-
-    if (userId !== booking.customer.toString()) {
-      throw new AppError(
-        StatusCodes.FORBIDDEN,
-        'You are not authorized to complete this booking',
-      );
-    }
-
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      bookingId,
-      { status: 'COMPLETED' },
+    const updatedOffer = await Offer.findByIdAndUpdate(
+      offerId,
+      { status: 'completed' },
       { new: true, session },
     );
 
-    // Update the post schedule slot to available true again
+    // Perform all database operations within transaction
+    const payoutAmount = (amount || 0) - 8;
 
-    await Post.findByIdAndUpdate(
-      booking.service,
-      {
-        $set: {
-          'schedule.$[sch].timeSlots.$[ts].available': true,
-        },
-      },
-      {
-        arrayFilters: [
-          { 'sch._id': new Types.ObjectId(booking.scheduleId) },
-          { 'ts._id': new Types.ObjectId(booking.slotId) },
-        ],
-        new: true,
-      },
-    );
-
-    // decrease service provider income
     await User.findByIdAndUpdate(
-      booking.provider,
-      { $inc: { income: -(booking.amount || 0) } },
+      offer.provider,
+      { $inc: { balance: payoutAmount } },
       { session },
     );
 
     await session.commitTransaction();
 
-    // perform external side-effects after successful commit
-    const payoutAmount = (booking.amount || 0) - 8; // deduct platform fee
-
-    //? for paypal payout
-    // await payoutToHost(
-    //   serviceProvider.paypalAccount as string,
-    //   payoutAmount,
-    //   booking.service.toString(),
-    //   booking._id?.toString() || '',
-    // );
-    //? use stripe transfer money method
+    // External side-effects after successful commit
     await transferMoney({
       amount: payoutAmount,
-      description: `Payout for booking ${booking._id}`,
+      description: `Payout for offer ${offerId}`,
       stripeAccountId: serviceProvider.stripeAccountId as string,
     });
 
@@ -209,10 +178,10 @@ const completeBooking = async (userId: string, bookingId: string) => {
       paypalBatchId: 'TRANSFERRED_VIA_STRIPE',
     };
 
-    const hostConfermationMail = emailTemplate.payoutConfirmation(emailValues);
-    emailHelper.sendEmail(hostConfermationMail);
+    const hostConfirmationMail = emailTemplate.payoutConfirmation(emailValues);
+    await emailHelper.sendEmail(hostConfirmationMail);
 
-    return updatedBooking || booking;
+    return updatedOffer;
   } catch (err) {
     await session.abortTransaction();
     throw err;
@@ -220,8 +189,6 @@ const completeBooking = async (userId: string, bookingId: string) => {
     session.endSession();
   }
 };
-
-*/
 
 // my upcoming offer
 
@@ -378,9 +345,8 @@ const completedOffersByProvider = async (
   };
 };
 
-
-
 export const OfferService = {
+  completeOffer,
   createOffer,
   acceptOffer,
   rejectOffer,

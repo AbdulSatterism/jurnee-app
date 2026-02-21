@@ -3,23 +3,48 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { PaymentService } from './payment.service';
-import AppError from '../../errors/AppError';
-import { createPaymentIntent, stripe } from './utils';
+import { stripe } from './utils';
 import { User } from '../user/user.model';
 import config from '../../../config';
+import { Offer } from '../offer/offer.model';
+import AppError from '../../errors/AppError';
 
 const createStripePaymentIntent = catchAsync(async (req, res) => {
   const userId: string = req.user.id;
   const email: string = req.user.email;
 
-  const { serviceId, bookingId, amount } = req.body;
+  const { offerId, amount } = req.body;
+
+  const isOfferExist = await Offer.findById(offerId);
+
+  if (!isOfferExist) {
+    throw new AppError(StatusCodes.BAD_GATEWAY, 'Offer is not found!');
+  }
+
+  if (isOfferExist.status === 'rejected') {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'offer already rejected, need to create a new offer',
+    );
+  }
+
+  const customer = await User.findById(isOfferExist.customer);
+  if (!customer) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'customer not found');
+  }
+
+  if (isOfferExist.customer.toString() !== userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'only customers can accept offers',
+    );
+  }
 
   try {
     const sessionUrl = await PaymentService.createStripePaymentIntent(
       userId,
       email,
-      serviceId,
-      bookingId,
+      offerId,
       amount,
     );
     res.status(200).json({ url: sessionUrl });
@@ -28,33 +53,36 @@ const createStripePaymentIntent = catchAsync(async (req, res) => {
   }
 });
 
-const createPayment = catchAsync(async (req, res) => {
-  const userId = req?.user?.id;
+// const createPayment = catchAsync(async (req, res) => {
+//   const userId = req?.user?.id;
 
-  const { serviceId, amount } = req.body;
+//   const { serviceId, offerId, amount } = req.body;
 
-  // Validate input
-  if (!serviceId) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'missing serviceId');
-  }
-  if (!userId) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'missing  userId');
-  }
+//   // Validate input
+//   if (!serviceId) {
+//     throw new AppError(StatusCodes.NOT_FOUND, 'missing serviceId');
+//   }
+//   if (!userId) {
+//     throw new AppError(StatusCodes.NOT_FOUND, 'missing  userId');
+//   }
+//   if (!offerId) {
+//     throw new AppError(StatusCodes.NOT_FOUND, 'missing offerId');
+//   }
 
-  if (!amount) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'missing amount');
-  }
+//   if (!amount) {
+//     throw new AppError(StatusCodes.NOT_FOUND, 'missing amount');
+//   }
 
-  // Get PayPal payment link
-  const paymentUrl = await createPaymentIntent(serviceId, amount);
+//   // Get PayPal payment link
+//   const paymentUrl = await createPaymentIntent(serviceId, amount);
 
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'payment intent created successfully',
-    data: paymentUrl,
-  });
-});
+//   sendResponse(res, {
+//     success: true,
+//     statusCode: StatusCodes.OK,
+//     message: 'payment intent created successfully',
+//     data: paymentUrl,
+//   });
+// });
 
 const allPayment = catchAsync(async (req, res) => {
   const result = await PaymentService.allPayments(req.query);
@@ -126,7 +154,6 @@ const paymentStripeWebhookController = catchAsync(async (req, res) => {
 export const PaymentController = {
   allPayment,
   singlePayment,
-  createPayment,
   stripeConnect,
   createStripePaymentIntent,
   paymentStripeWebhookController,

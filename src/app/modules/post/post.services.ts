@@ -325,6 +325,8 @@ const postDetails = async (postId: string, userId: string) => {
         'attenders.name': 1,
         'attenders.image': 1,
         title: 1,
+        image: 1,
+        media: 1,
         description: 1,
         location: 1,
         address: 1,
@@ -565,7 +567,8 @@ const myService = async (userId: string, query: Record<string, unknown>) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
-      .lean(),
+      .lean()
+      .populate('author', 'name image _id'),
     Post.countDocuments({ author: userId, category: 'service' }),
   ]);
 

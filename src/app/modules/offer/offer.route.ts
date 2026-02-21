@@ -50,4 +50,10 @@ router.get(
   OfferController.completedOffersByProvider,
 );
 
+router.post(
+  '/complete',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.completeOffer,
+);
+
 export const OfferRoute = router;
