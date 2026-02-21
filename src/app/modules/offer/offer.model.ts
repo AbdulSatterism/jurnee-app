@@ -27,7 +27,7 @@ const OfferSchema = new Schema<IOffer>(
     discount: { type: Number, default: 0, min: 0 },
     status: {
       type: String,
-      enum: ['draft', 'accepted', 'rejected'],
+      enum: ['draft', 'accepted', 'rejected', 'completed'],
       default: 'draft',
     },
   },

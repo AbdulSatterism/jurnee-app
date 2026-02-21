@@ -23,4 +23,31 @@ router.post(
   OfferController.rejectOffer,
 );
 
+// upcoming bookings
+router.get(
+  '/upcoming',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.upcomingOffers,
+);
+// past bookings
+router.get(
+  '/past',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.pastOffers,
+);
+
+// incompleted offers by provider
+router.get(
+  '/incompleted',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.incompletedOffersByProvider,
+);
+
+// completed offers by provider
+router.get(
+  '/completed',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.completedOffersByProvider,
+);
+
 export const OfferRoute = router;

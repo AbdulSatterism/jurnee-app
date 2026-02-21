@@ -2,17 +2,16 @@ import { Types } from 'mongoose';
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
-export interface ITimeSlot {
-  start: string;
-  end: string;
-  available?: boolean;
-}
+// export interface ITimeSlot {
+//   start: string;
+//   end: string;
+//   available?: boolean;
+// }
 
 export interface ISchedule {
   day: WeekDay;
   startTime: string;
   endTime: string;
-  timeSlots: ITimeSlot[];
 }
 
 export interface IPost {

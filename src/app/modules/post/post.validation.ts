@@ -1,16 +1,15 @@
 import { z } from 'zod';
 
-const timeSlotSchema = z.object({
-  start: z.string(), // "09:00"
-  end: z.string(), // "10:00"
-});
+// const timeSlotSchema = z.object({
+//   start: z.string(), // "09:00"
+//   end: z.string(), // "10:00"
+// });
 
 const scheduleSchema = z.array(
   z.object({
     day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
     startTime: z.string(), // "09:00"
     endTime: z.string(), // "17:00"
-    timeSlots: z.array(timeSlotSchema), // Array of time slots
   }),
 );
 

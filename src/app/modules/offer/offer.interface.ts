@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
-export type OfferStatus = 'draft' | 'accepted' | 'rejected';
+export type OfferStatus = 'draft' | 'accepted' | 'rejected' | 'completed';
 
 export interface IOfferItem {
   title?: string;

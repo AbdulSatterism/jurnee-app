@@ -9,7 +9,7 @@ export interface IBooking {
   slotStart: string;
   slotEnd: string;
   serviceDate: Date;
-  status: 'PENDING' | 'PROGRESS' | 'FAILED' | 'CANCELLED' | 'COMPLETED';
+  status: 'PENDING' | 'FAILED' | 'COMPLETED';
   amount: number;
 }
 

@@ -13,7 +13,7 @@ const bookingSchema = new Schema<IBooking>(
     serviceDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ['PENDING', 'PROGRESS', 'FAILED', 'CANCELLED', 'COMPLETED'],
+      enum: ['PENDING', 'FAILED', 'COMPLETED'],
       default: 'PENDING',
     },
     amount: { type: Number, required: true },

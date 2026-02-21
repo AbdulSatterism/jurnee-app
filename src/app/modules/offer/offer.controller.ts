@@ -39,8 +39,81 @@ const rejectOffer = catchAsync(async (req, res) => {
   });
 });
 
+const upcomingOffers = catchAsync(async (req, res) => {
+  const result = await OfferService.upcomingOffers(req.user.id, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Upcoming offers retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+const pastOffers = catchAsync(async (req, res) => {
+  const result = await OfferService.pastOffers(req.user.id, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Past offers retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const incompletedOffersByProvider = catchAsync(async (req, res) => {
+  const result = await OfferService.incompletedOffersByProvider(
+    req.user.id,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Incompleted offers by provider retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
+const completedOffersByProvider = catchAsync(async (req, res) => {
+  const result = await OfferService.completedOffersByProvider(
+    req.user.id,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Completed offers by provider retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 export const OfferController = {
   createOffer,
   acceptOffer,
   rejectOffer,
+  upcomingOffers,
+  pastOffers,
+  incompletedOffersByProvider,
+  completedOffersByProvider,
 };
