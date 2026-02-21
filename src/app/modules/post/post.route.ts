@@ -192,4 +192,10 @@ router.get(
   PostController.totalPostByCategory,
 );
 
+router.delete(
+  '/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.deletePost,
+);
+
 export const PostRoute = router;

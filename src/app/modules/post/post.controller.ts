@@ -234,6 +234,18 @@ const totalPostByCategory = catchAsync(async (req, res) => {
   });
 });
 
+const deletePost = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.id;
+  const result = await PostService.deletePost(userId, postId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post deleted successfully',
+    data: result,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -251,4 +263,5 @@ export const PostController = {
   blockOrSuspiciousToPublished,
   publishedToBlocked,
   totalPostByCategory,
+  deletePost,
 };

@@ -255,7 +255,7 @@ const postDetails = async (postId: string, userId: string) => {
       },
     },
     {
-      $unwind: { path: '$author', preserveNullAndEmptyArrays: true }, // Unwind author to get a single object
+      $unwind: { path: '$author', preserveNullAndEmptyArrays: true },
     },
 
     // Lookup attenders details from 'users' collection
@@ -268,7 +268,7 @@ const postDetails = async (postId: string, userId: string) => {
       },
     },
 
-    // Join reviews collection and calculate
+    // Lookup reviews
     {
       $lookup: {
         from: 'reviews',
@@ -277,21 +277,45 @@ const postDetails = async (postId: string, userId: string) => {
         as: 'reviews',
       },
     },
+    // Lookup comments
+    {
+      $lookup: {
+        from: 'comments',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'comments',
+      },
+    },
+    // Conditional feedback assignment based on category
+    {
+      $addFields: {
+        feedback: {
+          $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
+        },
+      },
+    },
+    // Remove individual reviews and comments fields
+    {
+      $project: {
+        reviews: 0,
+        comments: 0,
+      },
+    },
     {
       $addFields: {
         averageRating: {
           $cond: [
-            { $gt: [{ $size: '$reviews' }, null] },
-            { $avg: '$reviews.rating' },
+            { $gt: [{ $size: '$feedback' }, 0] },
+            { $avg: '$feedback.rating' },
             null,
           ],
         },
-        reviewsCount: { $size: '$reviews' },
+        reviewsCount: { $size: '$feedback' },
       },
     },
 
-    // Remove the review
-    { $project: { reviews: 0 } },
+    // Remove the feedback
+    { $project: { feedback: 0 } },
 
     // Project necessary fields to return in the final result
     {
@@ -712,6 +736,23 @@ const totalPostByCategory = async (category: string) => {
   return total;
 };
 
+// delete post by author
+
+const deletePost = async (userId: string, postId: string) => {
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+  if (post.author.toString() !== userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not authorized to delete this post',
+    );
+  }
+  await Post.findByIdAndDelete(postId);
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -729,4 +770,5 @@ export const PostService = {
   publishedToBlocked,
   blockOrSuspiciousToPublished,
   totalPostByCategory,
+  deletePost,
 };
