@@ -32,7 +32,10 @@ const createOffer = async (payload: IOffer) => {
     );
   }
 
-  const offer = await Offer.create(payload);
+  const offer = (await Offer.create(payload)).populate(
+    'service',
+    'image title description location category subcategory',
+  );
 
   return offer;
 };
@@ -186,7 +189,10 @@ const upcomingOffers = async (userId: string, query: Record<string, any>) => {
       customer: userId,
       date: { $gt: currentDate },
     })
-      .populate('service', 'title category ')
+      .populate(
+        'service',
+        'image title description location category subcategory',
+      )
       .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
@@ -224,7 +230,10 @@ const pastOffers = async (userId: string, query: Record<string, any>) => {
       customer: userId,
       date: { $lt: currentDate },
     })
-      .populate('service', 'title category ')
+      .populate(
+        'service',
+        'image title description location category subcategory',
+      )
       .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
@@ -302,7 +311,10 @@ const completedOffersByProvider = async (
       provider: userId,
       status: 'completed',
     })
-      .populate('service', 'title category ')
+      .populate(
+        'service',
+        'image title description location category subcategory',
+      )
       .populate('provider', 'name email image address')
       .skip(skip)
       .limit(size),
