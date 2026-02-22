@@ -116,11 +116,9 @@ const connectStripeAccount = catchAsync(async (req, res) => {
   }
 
   if (!user?.stripeAccountId) {
-    Object.assign(user, {
-      stripeAccountId: await getStripeAccountId(user.email),
+    await User.findByIdAndUpdate(user.id, {
+      stripeAccountId: await getStripeAccountId(),
     });
-
-    await user.save();
   }
 
   if (user.isStripeConnected) {
@@ -132,9 +130,9 @@ const connectStripeAccount = catchAsync(async (req, res) => {
 
   const { url } = await stripe.accountLinks.create({
     account: user.stripeAccountId!,
-    refresh_url: `https://mtjz2v20-3001.inc1.devtunnels.ms/not-found`,
+    refresh_url: `https://pfrrtc3c-3001.asse.devtunnels.ms/not-found`,
     //TODO: change return url
-    return_url: `https://mtjz2v20-3001.inc1.devtunnels.ms/api/v1/payments/stripe/connect?userId=${user.id}`,
+    return_url: `https://pfrrtc3c-3001.asse.devtunnels.ms/api/v1/payments/stripe/connect?userId=${user.id}`,
     type: 'account_onboarding',
   });
 

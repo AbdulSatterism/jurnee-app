@@ -120,74 +120,54 @@ const completeOffer = async (
   offerId: string,
   amount: number,
 ) => {
-  const session = await Offer.startSession();
-  session.startTransaction();
-
-  try {
-    const offer = await Offer.findById(offerId).session(session);
-    if (!offer) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Offer not found');
-    }
-
-    if (offer.status === 'completed') {
-      throw new AppError(StatusCodes.BAD_REQUEST, 'Offer is already completed');
-    }
-
-    if (userId !== offer.customer.toString()) {
-      throw new AppError(
-        StatusCodes.FORBIDDEN,
-        'You are not authorized to complete this offer',
-      );
-    }
-
-    const serviceProvider = await User.findById(offer.provider).session(
-      session,
-    );
-    if (!serviceProvider) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Service provider not found');
-    }
-
-    const updatedOffer = await Offer.findByIdAndUpdate(
-      offerId,
-      { status: 'completed' },
-      { new: true, session },
-    );
-
-    // Perform all database operations within transaction
-    const payoutAmount = (amount || 0) - 8;
-
-    await User.findByIdAndUpdate(
-      offer.provider,
-      { $inc: { balance: payoutAmount } },
-      { session },
-    );
-
-    await session.commitTransaction();
-
-    // External side-effects after successful commit
-    await transferMoney({
-      amount: payoutAmount,
-      description: `Payout for offer ${offerId}`,
-      stripeAccountId: serviceProvider.stripeAccountId as string,
-    });
-
-    const emailValues: IPayoutConfirmation = {
-      email: serviceProvider.paypalAccount as string,
-      amount: payoutAmount,
-      status: 'COMPLETED',
-      paypalBatchId: 'TRANSFERRED_VIA_STRIPE',
-    };
-
-    const hostConfirmationMail = emailTemplate.payoutConfirmation(emailValues);
-    await emailHelper.sendEmail(hostConfirmationMail);
-
-    return updatedOffer;
-  } catch (err) {
-    await session.abortTransaction();
-    throw err;
-  } finally {
-    session.endSession();
+  const offer = await Offer.findById(offerId);
+  if (!offer) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Offer not found');
   }
+
+  if (offer.status === 'completed') {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Offer is already completed');
+  }
+
+  if (userId !== offer.customer.toString()) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not authorized to complete this offer',
+    );
+  }
+
+  const serviceProvider = await User.findById(offer.provider);
+  if (!serviceProvider) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Service provider not found');
+  }
+
+  // Perform all database operations
+  const payoutAmount = (amount || 0) - 8;
+
+  // External side-effects
+  await transferMoney({
+    amount: payoutAmount,
+    description: `Payout for offer ${offerId}`,
+    stripeAccountId: serviceProvider.stripeAccountId as string,
+  });
+
+  const updatedOffer = await Offer.findByIdAndUpdate(
+    offerId,
+    { status: 'completed' },
+    { new: true },
+  );
+
+  const emailValues: IPayoutConfirmation = {
+    email: serviceProvider.paypalAccount as string,
+    amount: payoutAmount,
+    status: 'COMPLETED',
+    paypalBatchId: 'TRANSFERRED_VIA_STRIPE',
+  };
+
+  const hostConfirmationMail = emailTemplate.payoutConfirmation(emailValues);
+  await emailHelper.sendEmail(hostConfirmationMail);
+
+  return updatedOffer;
 };
 
 // my upcoming offer
