@@ -42,6 +42,18 @@ const postDetails = catchAsync(async (req, res) => {
   });
 });
 
+const detailWithRelevantPost = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user.id;
+  const result = await PostService.detailWithRelevantPost(postId, userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post details with relevant posts',
+    data: result,
+  });
+});
+
 const joinEvent = catchAsync(async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
@@ -264,4 +276,5 @@ export const PostController = {
   publishedToBlocked,
   totalPostByCategory,
   deletePost,
+  detailWithRelevantPost,
 };

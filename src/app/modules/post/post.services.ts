@@ -368,6 +368,139 @@ const postDetails = async (postId: string, userId: string) => {
   return updatedPost;
 };
 
+// post details with relevant post at least 4 relevant post based on category and subcategory and location and price range
+const detailWithRelevantPost = async (postId: string, userId: string) => {
+  const post = await Post.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(postId) } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'author',
+        foreignField: '_id',
+        as: 'author',
+      },
+    },
+    {
+      $unwind: { path: '$author', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'attenders',
+        foreignField: '_id',
+        as: 'attenders',
+      },
+    },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'reviews',
+      },
+    },
+
+    {
+      $lookup: {
+        from: 'comments',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'comments',
+      },
+    },
+    {
+      $addFields: {
+        feedback: {
+          $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
+        },
+      },
+    },
+    {
+      $project: {
+        reviews: 0,
+        comments: 0,
+      },
+    },
+    {
+      $addFields: {
+        averageRating: {
+          $cond: [
+            { $gt: [{ $size: '$feedback' }, 0] },
+            { $avg: '$feedback.rating' },
+            null,
+          ],
+        },
+        reviewsCount: { $size: '$feedback' },
+      },
+    },
+    { $project: { feedback: 0 } },
+
+    {
+      $project: {
+        'author.name': 1,
+        'author.image': 1,
+        'attenders.name': 1,
+        'attenders.image': 1,
+        title: 1,
+        image: 1,
+        media: 1,
+        description: 1,
+        location: 1,
+        address: 1,
+        views: 1,
+        likes: 1,
+        price: 1,
+        category: 1,
+        subcategory: 1,
+        amenities: 1,
+        schedule: 1,
+        startDate: 1,
+        endDate: 1,
+        isSaved: 1,
+        averageRating: 1,
+        reviewsCount: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        totalSaved: 1,
+      },
+    },
+  ]);
+
+  if (post.length === 0) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'This service not found');
+  }
+
+  const detail = post[0];
+
+  const savedPost = await Saved.findOne({ userId, postId });
+  detail.isSaved = savedPost ? true : false;
+
+  detail.views = (detail.views ?? 0) + 1;
+
+  await Post.updateOne(
+    { _id: postId },
+    { $set: { views: detail.views, isSaved: detail.isSaved } },
+  );
+  const relevantPosts = await Post.find({
+    _id: { $ne: new mongoose.Types.ObjectId(postId) },
+    category: detail.category,
+    subcategory: detail.subcategory,
+    price: {
+      $gte: (detail.price ?? 0) * 0.8,
+      $lte: (detail.price ?? 0) * 1.2,
+    },
+    status: 'PUBLISHED',
+  })
+    .populate('author', 'name image _id')
+    .limit(4)
+    .lean();
+
+  return {
+    detail,
+    relevantPosts,
+  };
+};
+
 // attend in the event in this field =>  attenders?: Types.ObjectId[];
 
 const joinEvent = async (userId: string, postId: string) => {
@@ -774,4 +907,5 @@ export const PostService = {
   blockOrSuspiciousToPublished,
   totalPostByCategory,
   deletePost,
+  detailWithRelevantPost,
 };

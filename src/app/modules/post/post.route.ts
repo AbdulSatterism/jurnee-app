@@ -135,6 +135,12 @@ router.get(
   PostController.postDetails,
 );
 
+router.get(
+  '/relevant/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.detailWithRelevantPost,
+);
+
 // get individual author post
 router.get(
   '/my-post',
