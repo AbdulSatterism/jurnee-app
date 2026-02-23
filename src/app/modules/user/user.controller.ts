@@ -130,9 +130,9 @@ const connectStripeAccount = catchAsync(async (req, res) => {
 
   const { url } = await stripe.accountLinks.create({
     account: user.stripeAccountId!,
-    refresh_url: `https://pfrrtc3c-3001.asse.devtunnels.ms/not-found`,
+    refresh_url: `https://joinjurnee.com/not-found`,
     //TODO: change return url
-    return_url: `https://pfrrtc3c-3001.asse.devtunnels.ms/api/v1/payments/stripe/connect?userId=${user.id}`,
+    return_url: `https://joinjurnee.com/api/v1/payments/stripe/connect?userId=${user.id}`,
     type: 'account_onboarding',
   });
 

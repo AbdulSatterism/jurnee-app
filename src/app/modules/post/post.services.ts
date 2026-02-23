@@ -481,19 +481,77 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
     { _id: postId },
     { $set: { views: detail.views, isSaved: detail.isSaved } },
   );
-  const relevantPosts = await Post.find({
-    _id: { $ne: new mongoose.Types.ObjectId(postId) },
-    category: detail.category,
-    subcategory: detail.subcategory,
-    price: {
-      $gte: (detail.price ?? 0) * 0.8,
-      $lte: (detail.price ?? 0) * 1.2,
+
+  const relevantPosts = await Post.aggregate([
+    {
+      $match: {
+        _id: { $ne: new mongoose.Types.ObjectId(postId) },
+        status: 'PUBLISHED',
+        $or: [
+          { category: detail.category },
+          ...(detail.subcategory
+            ? [{ subcategory: { $regex: new RegExp(detail.subcategory, 'i') } }]
+            : []),
+        ],
+      },
     },
-    status: 'PUBLISHED',
-  })
-    .populate('author', 'name image _id')
-    .limit(4)
-    .lean();
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'author',
+        foreignField: '_id',
+        as: 'author',
+      },
+    },
+    { $unwind: { path: '$author', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'reviews',
+      },
+    },
+    {
+      $lookup: {
+        from: 'comments',
+        localField: '_id',
+        foreignField: 'postId',
+        as: 'comments',
+      },
+    },
+    {
+      $addFields: {
+        feedback: {
+          $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
+        },
+      },
+    },
+    {
+      $addFields: {
+        averageRating: {
+          $cond: [
+            { $gt: [{ $size: '$feedback' }, 0] },
+            { $avg: '$feedback.rating' },
+            null,
+          ],
+        },
+        reviewsCount: { $size: '$feedback' },
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        image: 1,
+        location: 1,
+        address: 1,
+        category: 1,
+        averageRating: 1,
+        reviewsCount: 1,
+      },
+    },
+    { $limit: 4 },
+  ]);
 
   return {
     detail,

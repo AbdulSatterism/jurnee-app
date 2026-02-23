@@ -39,9 +39,15 @@ const socket = (io: Server) => {
             offer,
           });
 
-          const populatedMessage = await Message.findById(
-            newMessage._id,
-          ).populate('sender', 'name image _id');
+          const populatedMessage = await Message.findById(newMessage._id)
+            .populate('sender', 'name image _id')
+            .populate({
+              path: 'offer',
+              populate: {
+                path: 'service',
+                select: 'image title description location category subcategory',
+              },
+            });
 
           // Join chat room and emit
           socket.join(chat);
