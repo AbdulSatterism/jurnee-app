@@ -7,7 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 import { Payment } from '../payment/payment.model';
 import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
-import { captureOrder, transferMoney } from '../payment/utils';
+import { transferMoney } from '../payment/utils';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { IPayoutConfirmation } from '../../../types/emailTamplate';
@@ -340,16 +340,6 @@ const boostService = async (userId: string, payload: IBoost) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'Service not found');
   }
 
-  const captureResponse = await captureOrder(payload.orderId);
-
-  if (!captureResponse || captureResponse.status !== 'COMPLETED') {
-    throw new AppError(StatusCodes.PAYMENT_REQUIRED, 'Payment not completed');
-  }
-
-  // Extract capture details
-  const captureId = captureResponse.purchase_units[0].payments.captures[0].id;
-  const captureStatus = captureResponse.status;
-
   // update post boost status true
   serviceExists.boost = true;
   await serviceExists.save();
@@ -358,8 +348,8 @@ const boostService = async (userId: string, payload: IBoost) => {
   const payment: IPayment = {
     userId: new Types.ObjectId(userId),
     offerId: serviceExists._id,
-    status: captureStatus,
-    transactionId: captureId,
+    status: 'COMPLETED',
+    transactionId: payload.orderId,
     amount: payload.amount,
   };
 
