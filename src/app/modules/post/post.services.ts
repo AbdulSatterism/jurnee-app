@@ -6,6 +6,9 @@ import { IPost, IQuery } from './post.interface';
 import { Post } from './post.model';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Saved } from '../saved/saved.model';
+import { Comment } from '../comment/comment.model';
+import { Reply } from '../commentReply/commentReply.model';
+import { Review } from '../review/review.model';
 
 const createPost = async (author: string, payload: IPost) => {
   const isExist = await User.findById(author);
@@ -24,6 +27,18 @@ const createPost = async (author: string, payload: IPost) => {
   await User.findByIdAndUpdate(author, {
     $inc: { post: 1 },
   });
+
+  // interface AIData {
+  //   description: string;
+  //   image: string;
+  //   id: string;
+  // }
+
+  // const ai_data: AIData = {
+  //   description: result.description!,
+  //   image: result.image || '',
+  //   id: result._id ,
+  // };
 
   return result;
 };
@@ -286,12 +301,35 @@ const postDetails = async (postId: string, userId: string) => {
         as: 'comments',
       },
     },
+    // Lookup post likes by viewer
+    {
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        as: 'viewerLike',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$postId', '$$postId'] },
+                  { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+          { $limit: 1 },
+        ],
+      },
+    },
     // Conditional feedback assignment based on category
     {
       $addFields: {
         feedback: {
           $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
         },
+        liked: { $gt: [{ $size: '$viewerLike' }, 0] },
       },
     },
     // Remove individual reviews and comments fields
@@ -299,6 +337,7 @@ const postDetails = async (postId: string, userId: string) => {
       $project: {
         reviews: 0,
         comments: 0,
+        viewerLike: 0,
       },
     },
     {
@@ -332,6 +371,7 @@ const postDetails = async (postId: string, userId: string) => {
         address: 1,
         views: 1,
         likes: 1,
+        liked: 1,
         price: 1,
         category: 1,
         subcategory: 1,
@@ -399,6 +439,28 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         as: 'reviews',
       },
     },
+    // Lookup post likes by viewer
+    {
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        as: 'viewerLike',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$postId', '$$postId'] },
+                  { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+          { $limit: 1 },
+        ],
+      },
+    },
 
     {
       $lookup: {
@@ -413,12 +475,14 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         feedback: {
           $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
         },
+        liked: { $gt: [{ $size: '$viewerLike' }, 0] },
       },
     },
     {
       $project: {
         reviews: 0,
         comments: 0,
+        viewerLike: 0,
       },
     },
     {
@@ -457,6 +521,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         startDate: 1,
         endDate: 1,
         isSaved: 1,
+        liked: 1,
         averageRating: 1,
         reviewsCount: 1,
         createdAt: 1,
@@ -947,6 +1012,199 @@ const deletePost = async (userId: string, postId: string) => {
   await Post.findByIdAndDelete(postId);
 };
 
+const moment = async (postId: string, tab: string) => {
+  const post = await Post.findById(postId).populate('author', 'name image');
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  const media: string[] = [];
+  const mediaSource: Array<{
+    url: string;
+    type: string;
+    source: string;
+    userName: string;
+    userImage: string;
+    like?: number;
+  }> = [];
+
+  if (post.category?.toLowerCase() !== 'service') {
+    if (tab === 'all' || tab === 'owner') {
+      // Add owner media
+      if (post.media?.length) {
+        post.media.forEach(url => {
+          media.push(url);
+          mediaSource.push({
+            url,
+            type:
+              url.includes('.mp4') || url.includes('.mov') ? 'video' : 'image',
+            source: 'owner',
+            userName: (post.author as any).name,
+            userImage: (post.author as any).image,
+            like: post.likes || 0,
+          });
+        });
+      }
+    }
+
+    if (tab === 'all' || tab === 'community') {
+      const comments = await Comment.find({ postId }).populate(
+        'userId',
+        'name image',
+      );
+      const commentIds = comments.map(comment => comment._id);
+      const replies = await Reply.find({
+        commentId: { $in: commentIds },
+      }).populate('userId', 'name image');
+
+      // Process comments
+      comments.forEach(comment => {
+        const user = comment.userId as any;
+        if (comment.video?.length) {
+          const videos = Array.isArray(comment.video)
+            ? comment.video
+            : [comment.video];
+          videos.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'video',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+              like: comment.like || 0,
+            });
+          });
+        }
+        if (comment.image?.length) {
+          const images = Array.isArray(comment.image)
+            ? comment.image
+            : [comment.image];
+          images.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'image',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+              like: comment.like || 0,
+            });
+          });
+        }
+      });
+
+      // Process replies
+      replies.forEach(reply => {
+        const user = reply.userId as any;
+        if (reply.video?.length) {
+          const videos = Array.isArray(reply.video)
+            ? reply.video
+            : [reply.video];
+          videos.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'video',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+              like: reply.like || 0,
+            });
+          });
+        }
+        if (reply.image?.length) {
+          const images = Array.isArray(reply.image)
+            ? reply.image
+            : [reply.image];
+          images.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'image',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+              like: reply.like || 0,
+            });
+          });
+        }
+      });
+    }
+  } else {
+    // Handle service posts (reviews)
+    if (tab === 'all' || tab === 'owner') {
+      // Add owner media
+      if (post.media?.length) {
+        post.media.forEach(url => {
+          media.push(url);
+          mediaSource.push({
+            url,
+            type:
+              url.includes('.mp4') || url.includes('.mov') ? 'video' : 'image',
+            source: 'owner',
+            userName: (post.author as any).name,
+            userImage: (post.author as any).image,
+            like: post.likes || 0,
+          });
+        });
+      }
+    }
+
+    if (tab === 'all' || tab === 'community') {
+      const reviews = await Review.find({ postId }).populate(
+        'userId',
+        'name image',
+      );
+
+      reviews.forEach(review => {
+        const user = review.userId as any;
+        if (review.video?.length) {
+          const videos = Array.isArray(review.video)
+            ? review.video
+            : [review.video];
+          videos.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'video',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+            });
+          });
+        }
+        if (review.image?.length) {
+          const images = Array.isArray(review.image)
+            ? review.image
+            : [review.image];
+          images.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'image',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+            });
+          });
+        }
+      });
+    }
+  }
+
+  return {
+    media,
+    mediaSource,
+    postInfo: {
+      authorName: (post.author as any)?.name,
+      likes: post.likes || 0,
+      views: post.views || 0,
+      category: post.category,
+    },
+  };
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -966,4 +1224,5 @@ export const PostService = {
   totalPostByCategory,
   deletePost,
   detailWithRelevantPost,
+  moment,
 };

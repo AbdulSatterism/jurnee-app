@@ -6,6 +6,7 @@ import sendResponse from '../../../shared/sendResponse';
 const createPost = catchAsync(async (req, res) => {
   const author = req.user.id;
   const result = await PostService.createPost(author, req.body);
+
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.CREATED,
@@ -258,6 +259,16 @@ const deletePost = catchAsync(async (req, res) => {
   });
 });
 
+const momnet = catchAsync(async (req, res) => {
+  const result = await PostService.moment(req.params.id, req.params.tab);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Moment retrieved successfully',
+    data: result,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -277,4 +288,5 @@ export const PostController = {
   totalPostByCategory,
   deletePost,
   detailWithRelevantPost,
+  momnet,
 };

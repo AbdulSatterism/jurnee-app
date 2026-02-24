@@ -204,4 +204,10 @@ router.delete(
   PostController.deletePost,
 );
 
+router.get(
+  '/moment/:id/:tab',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.momnet,
+);
+
 export const PostRoute = router;
