@@ -38,6 +38,7 @@ const createPost = async (author: string, payload: IPost) => {
   //   description: result.description!,
   //   image: result.image || '',
   //   id: result._id ,
+  //   media: result.media || [],
   // };
 
   return result;
@@ -1201,6 +1202,7 @@ const moment = async (postId: string, tab: string) => {
       likes: post.likes || 0,
       views: post.views || 0,
       category: post.category,
+      hasTag: post.hasTag,
     },
   };
 };
