@@ -32,10 +32,14 @@ const createOffer = async (payload: IOffer) => {
     );
   }
 
-  const offer = (await Offer.create(payload)).populate(
-    'service',
-    'image title description location category subcategory',
-  );
+  const offer = await Offer.create(payload);
+  await offer.populate([
+    {
+      path: 'service',
+      select: 'image title description location category subcategory',
+    },
+    { path: 'provider', select: 'name email image address' },
+  ]);
 
   return offer;
 };
