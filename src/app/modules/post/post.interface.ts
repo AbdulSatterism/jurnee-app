@@ -78,3 +78,10 @@ export interface IQuery {
   dateTime?: string;
   rating?: number;
 }
+
+export interface AIData {
+  description: string;
+  image: string;
+  id: string;
+  media: string[];
+}

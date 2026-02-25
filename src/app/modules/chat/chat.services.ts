@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import sortMembers from '../../../util/sortMembers';
@@ -63,8 +64,8 @@ const chatListWithLastMessage = async (
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
+  const search = query.search as string;
 
-  // ✅ Check user existence
   const isUserExist = await User.isExistUserById(userId);
   if (!isUserExist) {
     throw new AppError(StatusCodes.NOT_FOUND, 'user not found');
@@ -72,12 +73,36 @@ const chatListWithLastMessage = async (
 
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
+  // Build match condition for search
+  const matchCondition: any = {
+    members: userObjectId,
+  };
+
   const chats = await Chat.aggregate([
     {
-      $match: {
-        members: userObjectId,
-      },
+      $match: matchCondition,
     },
+    // Add search functionality by member name
+    ...(search
+      ? [
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'members',
+              foreignField: '_id',
+              as: 'memberDetails',
+            },
+          },
+          {
+            $match: {
+              'memberDetails.name': {
+                $regex: search,
+                $options: 'i',
+              },
+            },
+          },
+        ]
+      : []),
     {
       $sort: { updatedAt: -1 },
     },
@@ -85,7 +110,6 @@ const chatListWithLastMessage = async (
     { $limit: limit },
 
     // Populate messages
-
     {
       $lookup: {
         from: 'messages',
@@ -119,7 +143,6 @@ const chatListWithLastMessage = async (
       },
     },
 
-    // ✅ Populate members
     {
       $lookup: {
         from: 'users',
@@ -146,14 +169,51 @@ const chatListWithLastMessage = async (
       $project: {
         populatedMembers: 0,
         allMessages: 0,
+        memberDetails: 0,
       },
     },
   ]);
 
-  // ✅ Pagination
-  const total = await Chat.countDocuments({
-    members: userObjectId,
-  });
+  // Update total count query to include search filter
+  const totalQuery: any = { members: userObjectId };
+
+  if (search) {
+    const searchChats = await Chat.aggregate([
+      { $match: totalQuery },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'members',
+          foreignField: '_id',
+          as: 'memberDetails',
+        },
+      },
+      {
+        $match: {
+          'memberDetails.name': {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+      },
+      { $count: 'total' },
+    ]);
+
+    const total = searchChats[0]?.total || 0;
+    const totalPage = Math.ceil(total / limit);
+
+    return {
+      data: chats,
+      meta: {
+        page,
+        limit,
+        totalPage,
+        total,
+      },
+    };
+  }
+
+  const total = await Chat.countDocuments(totalQuery);
   const totalPage = Math.ceil(total / limit);
 
   return {
@@ -175,6 +235,7 @@ const getChatInboxMessages = async (
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
+  const search = query.search as string;
 
   const isUserExist = await User.isExistUserById(userId);
   if (!isUserExist) {
@@ -196,8 +257,14 @@ const getChatInboxMessages = async (
     );
   }
 
-  // Fetch messages for the chat with pagination
-  const messages = await Message.find({ chat: chatId })
+  // add search functionality by message content 
+  // Build match condition for chat and search functionality
+  const matchCondition: any = { chat: new mongoose.Types.ObjectId(chatId) };
+  
+  if (search) {
+    matchCondition.message = { $regex: search, $options: 'i' };
+  }
+  const messages = await Message.find(matchCondition)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
@@ -214,7 +281,7 @@ const getChatInboxMessages = async (
   await Message.updateMany({ chat: chatId, read: false }, { read: true });
 
   // Get total count for pagination
-  const total = await Message.countDocuments({ chat: chatId });
+  const total = await Message.countDocuments(matchCondition);
   const totalPage = Math.ceil(total / limit);
 
   return {

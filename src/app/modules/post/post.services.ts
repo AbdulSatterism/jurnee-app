@@ -2,13 +2,14 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
-import { IPost, IQuery } from './post.interface';
+import { AIData, IPost, IQuery } from './post.interface';
 import { Post } from './post.model';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Saved } from '../saved/saved.model';
 import { Comment } from '../comment/comment.model';
 import { Reply } from '../commentReply/commentReply.model';
 import { Review } from '../review/review.model';
+import axios from 'axios';
 
 const createPost = async (author: string, payload: IPost) => {
   const isExist = await User.findById(author);
@@ -28,18 +29,18 @@ const createPost = async (author: string, payload: IPost) => {
     $inc: { post: 1 },
   });
 
-  // interface AIData {
-  //   description: string;
-  //   image: string;
-  //   id: string;
-  // }
+  const ai_data: AIData = {
+    description: result.description!,
+    image: result.image || '',
+    id: result._id.toString(),
+    media: result.media || [],
+  };
 
-  // const ai_data: AIData = {
-  //   description: result.description!,
-  //   image: result.image || '',
-  //   id: result._id ,
-  //   media: result.media || [],
-  // };
+  await axios.post('https://ai.joinjurnee.com/webhook/moderate', ai_data, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
   return result;
 };
