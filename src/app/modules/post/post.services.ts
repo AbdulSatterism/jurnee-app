@@ -826,6 +826,7 @@ const myService = async (userId: string, query: Record<string, unknown>) => {
       .skip(skip)
       .limit(size)
       .lean()
+      .select('title category  subcategory _id')
       .populate('author', 'name image _id'),
 
     Post.countDocuments({ author: userId, category: 'service' }),
