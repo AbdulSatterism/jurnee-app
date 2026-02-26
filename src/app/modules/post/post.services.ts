@@ -695,7 +695,7 @@ const updatePost = async (
     { _id: postId },
     { $set: payload },
     { new: true },
-  );
+  ).populate('author', 'name image _id');
 
   return updatedPost;
 };
@@ -827,6 +827,7 @@ const myService = async (userId: string, query: Record<string, unknown>) => {
       .limit(size)
       .lean()
       .populate('author', 'name image _id'),
+
     Post.countDocuments({ author: userId, category: 'service' }),
   ]);
 

@@ -24,9 +24,10 @@ const socket = (io: Server) => {
         message?: string;
         type?: string;
         offer?: string;
+        isOwner?: boolean;
       }) => {
         try {
-          const { chat, sender, message, type, offer } = payload;
+          const { chat, sender, message, type, offer, isOwner } = payload;
 
           if (!chat || !sender) throw new Error('chat and sender are required');
 
@@ -37,16 +38,24 @@ const socket = (io: Server) => {
             message,
             type,
             offer,
+            isOwner,
           });
 
           const populatedMessage = await Message.findById(newMessage._id)
             .populate('sender', 'name image _id')
             .populate({
               path: 'offer',
-              populate: {
-                path: 'service',
-                select: 'image title description location category subcategory',
-              },
+              populate: [
+                {
+                  path: 'service',
+                  select:
+                    'image title description location category subcategory',
+                },
+                {
+                  path: 'provider',
+                  select: 'name image _id address email',
+                },
+              ],
             });
 
           // Join chat room and emit

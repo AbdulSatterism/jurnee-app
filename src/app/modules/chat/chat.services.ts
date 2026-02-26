@@ -271,10 +271,16 @@ const getChatInboxMessages = async (
     .populate('sender', 'name image _id')
     .populate({
       path: 'offer',
-      populate: {
-        path: 'service',
-        select: 'image title description location category subcategory',
-      },
+      populate: [
+        {
+          path: 'service',
+          select: 'image title description location category subcategory',
+        },
+        {
+          path: 'provider',
+          select: 'name image _id address email',
+        },
+      ],
     });
 
   //  read:false make it read:true

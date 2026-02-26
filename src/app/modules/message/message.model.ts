@@ -9,6 +9,7 @@ const messageSchema = new Schema<IMessage>(
     offer: { type: Schema.Types.ObjectId, ref: 'Offer', default: null },
     type: { type: String, enum: ['text', 'offer'], default: 'text' },
     read: { type: Boolean, default: false },
+    isOwner: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false },
 );

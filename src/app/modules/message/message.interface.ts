@@ -7,4 +7,5 @@ export interface IMessage {
   message?: string;
   offer?: Types.ObjectId;
   type?: 'text' | 'offer';
+  isOwner?: boolean;
 }
