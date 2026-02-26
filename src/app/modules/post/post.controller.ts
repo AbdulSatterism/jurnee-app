@@ -2,13 +2,13 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import { PostService } from './post.services';
 import sendResponse from '../../../shared/sendResponse';
-import { Cache } from '../../../lib/cache';
+// import { Cache } from '../../../lib/cache';
 
 const createPost = catchAsync(async (req, res) => {
   const author = req.user.id;
   const result = await PostService.createPost(author, req.body);
 
-  await Cache.delByPattern('post:*');
+  // await Cache.delByPattern('post:*');
 
   sendResponse(res, {
     success: true,
@@ -160,7 +160,7 @@ const updatePost = catchAsync(async (req, res) => {
   const postId = req.params.id;
   const result = await PostService.updatePost(userId, postId, req.body);
 
-  await Cache.delByPattern('post:*');
+  // await Cache.delByPattern('post:*');
 
   sendResponse(res, {
     success: true,
@@ -257,7 +257,7 @@ const deletePost = catchAsync(async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
   const result = await PostService.deletePost(userId, postId);
-  await Cache.delByPattern('post:*');
+  // await Cache.delByPattern('post:*');
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,

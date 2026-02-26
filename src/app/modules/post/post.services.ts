@@ -115,8 +115,8 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   }
 
   //  Distance filter (if user or query location provided)
-  const userLat = userLocation?.lat || (lat ? parseFloat(lat) : null);
-  const userLng = userLocation?.lng || (lng ? parseFloat(lng) : null);
+  const userLat = lat ? parseFloat(lat) : userLocation?.lat;
+  const userLng = lng ? parseFloat(lng) : userLocation?.lng;
   const maxDist = maxDistance ? parseFloat(maxDistance) : 50000; // default 50km
   const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
 

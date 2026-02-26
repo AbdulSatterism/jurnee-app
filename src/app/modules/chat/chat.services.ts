@@ -73,6 +73,183 @@ const chatListWithLastMessage = async (
 
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
+  // Build match condition for search – exclude self-chats
+  const matchCondition: any = {
+    members: userObjectId,
+    $expr: { $gt: [{ $size: '$members' }, 1] }, // ← added
+  };
+
+  const chats = await Chat.aggregate([
+    { $match: matchCondition },
+    // ... (search lookup remains unchanged) ...
+    ...(search
+      ? [
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'members',
+              foreignField: '_id',
+              as: 'memberDetails',
+            },
+          },
+          {
+            $match: {
+              'memberDetails.name': {
+                $regex: search,
+                $options: 'i',
+              },
+            },
+          },
+        ]
+      : []),
+    { $sort: { updatedAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+
+    // Lookup messages – exclude messages sent by current user
+    {
+      $lookup: {
+        from: 'messages',
+        let: { chatId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$chat', '$$chatId'] } } },
+          { $match: { sender: { $ne: userObjectId } } }, // ← added
+          { $sort: { createdAt: -1 } },
+          {
+            $project: {
+              message: 1,
+              read: 1,
+              _id: 0,
+            },
+          },
+        ],
+        as: 'allMessages',
+      },
+    },
+    {
+      $addFields: {
+        lastMessage: { $arrayElemAt: ['$allMessages', 0] },
+        unread: {
+          $size: {
+            $filter: {
+              input: '$allMessages',
+              as: 'message',
+              cond: { $eq: ['$$message.read', false] },
+            },
+          },
+        },
+      },
+    },
+    // ... (rest of the pipeline for populating members remains unchanged) ...
+    {
+      $lookup: {
+        from: 'users',
+        let: { memberIds: '$members' },
+        pipeline: [
+          { $match: { $expr: { $in: ['$_id', '$$memberIds'] } } },
+          {
+            $match: {
+              $expr: { $ne: ['$_id', new mongoose.Types.ObjectId(userId)] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              image: 1,
+            },
+          },
+        ],
+        as: 'populatedMembers',
+      },
+    },
+    {
+      $addFields: {
+        members: '$populatedMembers',
+      },
+    },
+    {
+      $project: {
+        populatedMembers: 0,
+        allMessages: 0,
+        memberDetails: 0,
+      },
+    },
+  ]);
+
+  // Update total count with self-chat exclusion
+  const totalQuery: any = {
+    members: userObjectId,
+    $expr: { $gt: [{ $size: '$members' }, 1] },
+  };
+
+  if (search) {
+    const searchChats = await Chat.aggregate([
+      { $match: totalQuery },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'members',
+          foreignField: '_id',
+          as: 'memberDetails',
+        },
+      },
+      {
+        $match: {
+          'memberDetails.name': {
+            $regex: search,
+            $options: 'i',
+          },
+        },
+      },
+      { $count: 'total' },
+    ]);
+
+    const total = searchChats[0]?.total || 0;
+    const totalPage = Math.ceil(total / limit);
+
+    return {
+      data: chats,
+      meta: {
+        page,
+        limit,
+        totalPage,
+        total,
+      },
+    };
+  }
+
+  const total = await Chat.countDocuments(totalQuery);
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    data: chats,
+    meta: {
+      page,
+      limit,
+      totalPage,
+      total,
+    },
+  };
+};
+
+/*
+const chatListWithLastMessage = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const search = query.search as string;
+
+  const isUserExist = await User.isExistUserById(userId);
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'user not found');
+  }
+
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+
   // Build match condition for search
   const matchCondition: any = {
     members: userObjectId,
@@ -116,7 +293,7 @@ const chatListWithLastMessage = async (
         let: { chatId: '$_id' },
         pipeline: [
           { $match: { $expr: { $eq: ['$chat', '$$chatId'] } } },
-          { $sort: { createdAt: -1 } }, // Sort messages by createdAt (latest first)
+          { $sort: { createdAt: -1 } },
           {
             $project: {
               message: 1,
@@ -149,6 +326,11 @@ const chatListWithLastMessage = async (
         let: { memberIds: '$members' },
         pipeline: [
           { $match: { $expr: { $in: ['$_id', '$$memberIds'] } } },
+          {
+            $match: {
+              $expr: { $ne: ['$_id', new mongoose.Types.ObjectId(userId)] },
+            },
+          },
           {
             $project: {
               _id: 1,
@@ -227,6 +409,7 @@ const chatListWithLastMessage = async (
   };
 };
 
+*/
 const getChatInboxMessages = async (
   userId: string,
   chatId: string,
@@ -257,10 +440,10 @@ const getChatInboxMessages = async (
     );
   }
 
-  // add search functionality by message content 
+  // add search functionality by message content
   // Build match condition for chat and search functionality
   const matchCondition: any = { chat: new mongoose.Types.ObjectId(chatId) };
-  
+
   if (search) {
     matchCondition.message = { $regex: search, $options: 'i' };
   }
