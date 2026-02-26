@@ -5,6 +5,7 @@ import { PostController } from './post.controller';
 import validateRequest from '../../middlewares/validateRequest';
 import { PostValidation } from './post.validation';
 import fileUploader from '../../middlewares/fileUploadHandler';
+import { cacheGet } from '../../middlewares/cacheGet';
 
 const router = Router();
 
@@ -125,6 +126,7 @@ router.post(
 router.get(
   '/all-post',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  cacheGet('post:all', 120, req => ({ q: req.query })),
   PostController.getAllPosts,
 );
 
