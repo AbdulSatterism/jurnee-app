@@ -795,7 +795,7 @@ const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
 // user join events
 
 const userJoinEvents = async (
-  userId: string,
+  postId: string,
   query: Record<string, unknown>,
 ) => {
   const { page, limit } = query;
@@ -803,19 +803,14 @@ const userJoinEvents = async (
   const size = parseInt(limit as string) || 10;
   const skip = (pages - 1) * size;
 
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-  }
-
   const [post, total] = await Promise.all([
-    Post.find({ attenders: userId })
-      .populate('attenders', 'name image -_id')
+    Post.find({ _id: postId })
+      .populate('attenders', 'name email image -_id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
       .lean(),
-    Post.countDocuments({ attenders: userId }),
+    Post.countDocuments({ _id: postId }),
   ]);
 
   const totalPage = Math.ceil(total / size);
