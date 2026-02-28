@@ -7,7 +7,7 @@ const messageSchema = new Schema<IMessage>(
     sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     message: { type: String, default: '' },
     offer: { type: Schema.Types.ObjectId, ref: 'Offer', default: null },
-    type: { type: String, enum: ['text', 'offer'], default: 'text' },
+    type: { type: String, enum: ['text', 'offer', 'quote'], default: 'text' },
     read: { type: Boolean, default: false },
     isOwner: { type: Boolean, default: false },
   },

@@ -51,6 +51,7 @@ const postSchema = new Schema<IPost>(
     },
     subcategory: { type: String, default: null },
     serviceType: { type: String, default: null },
+    serviceArea: { type: String, default: '' },
 
     // alert posts
     missingName: { type: String, default: null },

@@ -6,6 +6,6 @@ export interface IMessage {
   read?: boolean;
   message?: string;
   offer?: Types.ObjectId;
-  type?: 'text' | 'offer';
+  type?: 'text' | 'offer' | 'quote';
   isOwner?: boolean;
 }

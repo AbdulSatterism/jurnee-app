@@ -39,6 +39,7 @@ export interface IPost {
   category?: 'event' | 'service' | 'alert' | 'deal';
   subcategory?: string;
   serviceType?: string;
+  serviceArea?: string;
 
   // for alert posts
   missingName?: string;
