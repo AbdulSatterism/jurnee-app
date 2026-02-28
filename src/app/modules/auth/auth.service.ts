@@ -23,6 +23,7 @@ import AppError from '../../errors/AppError';
 import unlinkFile from '../../../shared/unlinkFile';
 import { downloadImage, facebookToken } from './auth.lib';
 import { verifyAppleToken } from '../../../helpers/appleLoginHelper';
+import { stat } from 'fs';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -35,7 +36,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
   //check verified and status
   if (!isExistUser.verified) {
     throw new AppError(
-      StatusCodes.BAD_REQUEST,
+      StatusCodes.FORBIDDEN,
       'Please verify your account, then try to login again',
     );
   }

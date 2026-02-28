@@ -75,7 +75,8 @@ export interface IQuery {
   maxDistance?: string;
   minPrice?: string;
   maxPrice?: string;
-  dateTime?: string;
+  dateFrom?: string;
+  dateTo?: string;
   rating?: number;
 }
 

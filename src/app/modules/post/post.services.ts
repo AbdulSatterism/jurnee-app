@@ -25,6 +25,11 @@ const createPost = async (author: string, payload: IPost) => {
 
   const result = await Post.create(payload);
 
+  const populatePost = await result.populate(
+    'author',
+    'name image email image _id isStripeConnected stripeAccountId',
+  );
+
   await User.findByIdAndUpdate(author, {
     $inc: { post: 1 },
   });
@@ -42,7 +47,7 @@ const createPost = async (author: string, payload: IPost) => {
     },
   });
 
-  return result;
+  return populatePost;
 };
 
 // get all post
@@ -54,7 +59,8 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     category,
     search,
     date,
-    dateTime,
+    dateFrom,
+    dateTo,
     lat,
     lng,
     maxDistance,
@@ -88,19 +94,39 @@ const getAllPosts = async (query: IQuery, userId: string) => {
     };
   }
 
-  // Date filter
   const now = new Date();
+
+  const fromDate = dateFrom ? new Date(dateFrom) : null;
+  const toDate = dateTo ? new Date(dateTo) : null;
+
+  if (fromDate && !isNaN(fromDate.getTime())) {
+    fromDate.setUTCHours(0, 0, 0, 0); // start of day
+  }
+  if (toDate && !isNaN(toDate.getTime())) {
+    toDate.setUTCHours(23, 59, 59, 999); // end of day
+  }
+
+  const isValidFrom = fromDate && !isNaN(fromDate.getTime());
+  const isValidTo = toDate && !isNaN(toDate.getTime());
+
   if (date === 'today') {
     filter.startDate = { $lte: now };
     filter.endDate = { $gte: now };
   } else if (date === 'upcoming') {
     filter.startDate = { $gt: now };
-  } else if (dateTime) {
-    const inputDateTime = new Date(dateTime);
-
-    if (!isNaN(inputDateTime.getTime())) {
-      filter.startDate = { $eq: inputDateTime };
-    }
+  } else if (isValidFrom && isValidTo) {
+    filter.$expr = {
+      $and: [
+        { $lte: ['$startDate', toDate] },
+        { $gte: [{ $ifNull: ['$endDate', '$startDate'] }, fromDate] },
+      ],
+    };
+  } else if (isValidFrom) {
+    filter.$expr = {
+      $gte: [{ $ifNull: ['$endDate', '$startDate'] }, fromDate],
+    };
+  } else if (isValidTo) {
+    filter.startDate = { $lte: toDate };
   }
 
   // Search (title, description, category, tags)
@@ -503,6 +529,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
 
     {
       $project: {
+        'author._id': 1,
         'author.name': 1,
         'author.image': 1,
         'attenders.name': 1,
