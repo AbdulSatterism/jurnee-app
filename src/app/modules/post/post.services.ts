@@ -586,6 +586,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         createdAt: 1,
         updatedAt: 1,
         totalSaved: 1,
+        hasTag: 1,
       },
     },
   ]);
