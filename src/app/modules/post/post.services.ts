@@ -1310,6 +1310,58 @@ const moment = async (postId: string, tab: string) => {
   };
 };
 
+// fetch  by categorywise and returen also different way all fetch by nearest and also upcoming not past
+/*
+ service:{
+ }
+  event:{
+  }
+*/
+
+// trending service base on likes, views, upcomming event base on user location and also likes, alert (nearest) and nearest deal=> 'event' | 'service' | 'alert' | 'deal';
+
+const sideData = async ( userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const userLocation = user.location;
+
+  const trendingServices = await Post.find({ category: 'service', location: { $near: userLocation } })
+    .sort({ likes: -1, views: -1 })
+    .lean();
+const upcomingEvents = await Post.find({
+  category: 'event',
+  location: { $near: userLocation },
+  startDate: { $gte: new Date() },
+})
+.sort({ startDate: 1 })
+.lean();
+
+const nearestDeals = await Post.find({
+  category: 'deal',
+  location: { $near: userLocation },
+})
+.sort({ createdAt: -1 })
+.lean();
+
+const alerts = await Post.find({
+  category: 'alert',
+  location: { $near: userLocation },
+})
+.sort({ createdAt: -1 })
+.lean();
+
+return {
+  trendingServices,
+  upcomingEvents,
+  nearestDeals,
+  alerts,
+};
+
+}
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -1330,4 +1382,5 @@ export const PostService = {
   deletePost,
   detailWithRelevantPost,
   moment,
+  sideData,
 };

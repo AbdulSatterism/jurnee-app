@@ -212,4 +212,10 @@ router.get(
   PostController.momnet,
 );
 
+router.get(
+  '/side-data',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.sideData,
+);
+
 export const PostRoute = router;

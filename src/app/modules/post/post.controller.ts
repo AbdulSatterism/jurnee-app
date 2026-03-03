@@ -276,6 +276,16 @@ const momnet = catchAsync(async (req, res) => {
   });
 });
 
+const sideData = catchAsync(async (req, res) => {
+  const result = await PostService.sideData(req.user.id);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Side data retrieved successfully',
+    data: result,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -296,4 +306,5 @@ export const PostController = {
   deletePost,
   detailWithRelevantPost,
   momnet,
+  sideData,
 };
