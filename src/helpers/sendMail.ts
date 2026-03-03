@@ -13,6 +13,8 @@ export async function sendEmail(email: string, subject: string, text: string) {
         user: config.email.user,
         pass: config.email.pass,
       },
+      debug: true,
+      logger: true,
     });
 
     const info = await transporter.sendMail({
@@ -117,6 +119,7 @@ export async function sendEmail(email: string, subject: string, text: string) {
       `,
     });
 
+    console.log('Email sent: %s', info);
     return info;
   } catch (error) {
     throw new AppError(

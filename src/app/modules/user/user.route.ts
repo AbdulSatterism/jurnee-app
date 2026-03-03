@@ -65,5 +65,6 @@ router.delete(
 );
 
 router.get('/connect-stripe', auth(), UserController.connectStripeAccount);
+router.post('/connect-stripe', auth(), UserController.connectStripeAccount);
 
 export const UserRoutes = router;

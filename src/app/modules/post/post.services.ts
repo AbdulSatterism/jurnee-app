@@ -179,9 +179,54 @@ const getAllPosts = async (query: IQuery, userId: string) => {
       },
     },
     {
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        as: 'viewerLike',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$postId', '$$postId'] },
+                  { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+          { $limit: 1 },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: 'saveds',
+        let: { postId: '$_id' },
+        as: 'viewerSaved',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$postId', '$$postId'] },
+                  { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+          { $limit: 1 },
+        ],
+      },
+    },
+
+    {
       $addFields: {
         averageRating: { $avg: '$reviews.rating' }, // Calculate average rating
         reviewsCount: { $size: '$reviews' }, // Count the number of reviews
+        isLiked: { $gt: [{ $size: '$viewerLike' }, 0] },
+        isSaved: { $gt: [{ $size: '$viewerSaved' }, 0] },
       },
     },
 
@@ -443,6 +488,8 @@ const postDetails = async (postId: string, userId: string) => {
         createdAt: 1,
         updatedAt: 1,
         totalSaved: 1,
+        hasTag: 1,
+        isLiked: 1,
       },
     },
   ]);
