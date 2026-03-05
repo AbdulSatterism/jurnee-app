@@ -44,9 +44,9 @@ const createStripePaymentIntent = async (
         payment_method_types: ['card'],
         line_items: lineItems,
         mode: 'payment',
-        success_url: 'https://joinjurnee.com/', //todo: change this later
+        success_url: 'https://test.joinjurnee.com/payment/success', //todo: change this later
 
-        cancel_url: 'https://joinjurnee.com/', //todo: change this later
+        cancel_url: 'https://test.joinjurnee.com/payment/failure', //todo: change this later
         metadata: {
           userId,
           offerId,
@@ -80,9 +80,9 @@ const createStripePaymentIntent = async (
         payment_method_types: ['card'],
         line_items: lineItems,
         mode: 'payment',
-        success_url: 'https://joinjurnee.com/', //todo: change this later
+        success_url: 'https://test.joinjurnee.com/payment/success', //todo: change this later
 
-        cancel_url: 'https://joinjurnee.com/', //todo: change this later
+        cancel_url: 'https://test.joinjurnee.com/payment/failure', //todo: change this later
         metadata: {
           userId,
           offerId,
