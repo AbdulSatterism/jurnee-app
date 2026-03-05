@@ -515,6 +515,8 @@ const postDetails = async (postId: string, userId: string) => {
 
 // post details with relevant post at least 4 relevant post based on category and subcategory and location and price range
 const detailWithRelevantPost = async (postId: string, userId: string) => {
+  // if userId exist in attenders array so add another filed isAttender: true else false
+
   const post = await Post.aggregate([
     { $match: { _id: new mongoose.Types.ObjectId(postId) } },
     {
@@ -581,6 +583,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
           $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
         },
         liked: { $gt: [{ $size: '$viewerLike' }, 0] },
+        isAttend: { $gt: [{ $size: { $filter: { input: '$attenders', as: 'attender', cond: { $eq: ['$$attender._id', new mongoose.Types.ObjectId(userId)] } } } }, 0] },
       },
     },
     {
@@ -610,6 +613,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         'author.name': 1,
         'author.image': 1,
         'attenders.name': 1,
+        'attenders._id': 1,
         'attenders.image': 1,
         title: 1,
         image: 1,
@@ -628,6 +632,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         endDate: 1,
         isSaved: 1,
         liked: 1,
+        isAttend: 1,
         averageRating: 1,
         reviewsCount: 1,
         createdAt: 1,
@@ -1310,17 +1315,7 @@ const moment = async (postId: string, tab: string) => {
   };
 };
 
-// fetch  by categorywise and returen also different way all fetch by nearest and also upcoming not past
-/*
- service:{
- }
-  event:{
-  }
-*/
-
-// trending service base on likes, views, upcomming event base on user location and also likes, alert (nearest) and nearest deal=> 'event' | 'service' | 'alert' | 'deal';
-
-const sideData = async ( userId: string) => {
+const sideData = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
@@ -1328,39 +1323,41 @@ const sideData = async ( userId: string) => {
 
   const userLocation = user.location;
 
-  const trendingServices = await Post.find({ category: 'service', location: { $near: userLocation } })
+  const trendingServices = await Post.find({
+    category: 'service',
+    location: { $near: userLocation },
+  })
     .sort({ likes: -1, views: -1 })
     .lean();
-const upcomingEvents = await Post.find({
-  category: 'event',
-  location: { $near: userLocation },
-  startDate: { $gte: new Date() },
-})
-.sort({ startDate: 1 })
-.lean();
+  const upcomingEvents = await Post.find({
+    category: 'event',
+    location: { $near: userLocation },
+    startDate: { $gte: new Date() },
+  })
+    .sort({ startDate: 1 })
+    .lean();
 
-const nearestDeals = await Post.find({
-  category: 'deal',
-  location: { $near: userLocation },
-})
-.sort({ createdAt: -1 })
-.lean();
+  const nearestDeals = await Post.find({
+    category: 'deal',
+    location: { $near: userLocation },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
 
-const alerts = await Post.find({
-  category: 'alert',
-  location: { $near: userLocation },
-})
-.sort({ createdAt: -1 })
-.lean();
+  const alerts = await Post.find({
+    category: 'alert',
+    location: { $near: userLocation },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
 
-return {
-  trendingServices,
-  upcomingEvents,
-  nearestDeals,
-  alerts,
+  return {
+    trendingServices,
+    upcomingEvents,
+    nearestDeals,
+    alerts,
+  };
 };
-
-}
 
 export const PostService = {
   createPost,

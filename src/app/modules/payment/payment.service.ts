@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import { Payment } from './payment.model';
@@ -6,54 +7,105 @@ import Stripe from 'stripe';
 import { logger } from '../../../shared/logger';
 import { Offer } from '../offer/offer.model';
 import { User } from '../user/user.model';
+import { Post } from '../post/post.model';
 
 const createStripePaymentIntent = async (
   userId: string,
   email: string,
   offerId: string,
   amount: number,
+  type: 'offer' | 'boost',
 ) => {
-  const isOfferExist = await Offer.findById(offerId);
-
-  if (!isOfferExist) {
-    throw new AppError(StatusCodes.BAD_GATEWAY, 'Offer is not found!');
-  }
-
   try {
-    const lineItems = [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Offer Payment',
-            description: `Payment for offer ${offerId}`,
+    let session = null;
+
+    if (type === 'offer') {
+      const isOfferExist = await Offer.findById(offerId);
+
+      if (!isOfferExist) {
+        throw new AppError(StatusCodes.BAD_GATEWAY, 'Offer is not found!');
+      }
+
+      const lineItems = [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Offer Payment',
+              description: `Payment for offer ${offerId}`,
+            },
+            unit_amount: amount * 100,
           },
-          unit_amount: amount * 100,
+          quantity: 1,
         },
-        quantity: 1,
-      },
-    ];
+      ];
 
-    //TODO: change success_url and cancel_url later
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: 'https://pfrrtc3c-3001.asse.devtunnels.ms/', //todo: change this later
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: 'https://joinjurnee.com/', //todo: change this later
+        cancel_url: 'https://joinjurnee.com/', //todo: change this later
+        metadata: {
+          userId,
+          offerId,
+          providerId: isOfferExist.provider.toString(),
+          type,
+        },
+        customer_email: email,
+      });
+    } else if (type === 'boost') {
+      const isPostExist = await Post.findById(offerId);
 
-      cancel_url: 'https://joinjurnee.com/', //todo: change this later
-      metadata: {
-        userId,
-        offerId,
-        providerId: isOfferExist.provider.toString(),
-      },
-      customer_email: email,
-    });
+      if (!isPostExist) {
+        throw new AppError(StatusCodes.BAD_GATEWAY, 'Post is not found!');
+      }
+
+      const lineItems = [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'boost Payment',
+              description: `Payment for boost post ${offerId}`,
+            },
+            unit_amount: amount * 100,
+          },
+          quantity: 1,
+        },
+      ];
+
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: 'https://pfrrtc3c-3001.asse.devtunnels.ms/', //todo: change this later
+
+        cancel_url: 'https://joinjurnee.com/', //todo: change this later
+        metadata: {
+          userId,
+          offerId,
+          providerId: isPostExist.author.toString(),
+          type,
+        },
+        customer_email: email,
+      });
+    }
+
+    if (!session) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Failed to create checkout session',
+      );
+    }
 
     return session.url;
   } catch (error) {
-    throw new Error('Failed to create checkout session');
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Failed to create checkout session',
+    );
   }
 };
 
@@ -115,43 +167,67 @@ const singlePayment = async (id: string) => {
   return isExist;
 };
 
-const handleStripeWebhookService = async (event: Stripe.Event) => {
+const handleStripeWebhookService = async (event: Stripe.Event & any) => {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
 
       const { amount_total, metadata, payment_intent } = session;
-      const userId = metadata?.userId;
-      const offerId = metadata?.offerId;
-      const providerId = metadata?.providerId;
 
-      const amountTotal = (amount_total ?? 0) / 100;
+      const type = metadata?.type;
 
-      // Save payment record within the transaction
-      const payment = new Payment({
-        userId,
-        offerId,
-        status: 'COMPLETED',
-        transactionId: payment_intent,
-        amount: amountTotal,
-      });
+      if (type === 'offer') {
+        const userId = metadata?.userId;
+        const offerId = metadata?.offerId;
+        const providerId = metadata?.providerId;
 
-      await payment.save();
+        const amountTotal = (amount_total ?? 0) / 100;
 
-      //* update offer status
-      await Offer.findByIdAndUpdate(
-        offerId,
-        { status: 'accepted' },
-        { new: true },
-      );
+        // Save payment record within the transaction
+        const payment = new Payment({
+          userId,
+          offerId,
+          status: 'COMPLETED',
+          transactionId: payment_intent,
+          amount: amountTotal,
+        });
 
-      // update provider income
+        await payment.save();
 
-      await User.findByIdAndUpdate(
-        providerId,
-        { $inc: { income: amountTotal } },
-        { new: true },
-      );
+        //* update offer status
+        await Offer.findByIdAndUpdate(
+          offerId,
+          { status: 'accepted' },
+          { new: true },
+        );
+
+        // update provider income
+
+        await User.findByIdAndUpdate(
+          providerId,
+          { $inc: { income: amountTotal } },
+          { new: true },
+        );
+      } else if (type === 'boost') {
+        const userId = metadata?.userId;
+        const offerId = metadata?.offerId;
+
+        const amountTotal = (amount_total ?? 0) / 100;
+
+        // Save payment record within the transaction
+        const payment = new Payment({
+          userId,
+          offerId,
+          status: 'COMPLETED',
+          transactionId: payment_intent,
+          amount: amountTotal,
+        });
+
+        await payment.save();
+
+        //* update offer status
+        await Post.findByIdAndUpdate(offerId, { boost: true }, { new: true });
+      }
 
       break;
     }

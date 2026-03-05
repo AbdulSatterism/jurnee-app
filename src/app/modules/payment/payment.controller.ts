@@ -8,6 +8,7 @@ import { User } from '../user/user.model';
 import config from '../../../config';
 import { Offer } from '../offer/offer.model';
 import AppError from '../../errors/AppError';
+import { Post } from '../post/post.model';
 
 const createStripePaymentIntent = catchAsync(async (req, res) => {
   const userId: string = req.user.id;
@@ -46,6 +47,44 @@ const createStripePaymentIntent = catchAsync(async (req, res) => {
       email,
       offerId,
       amount,
+      'offer',
+    );
+    res.status(200).json({ url: sessionUrl });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create checkout session' });
+  }
+});
+
+const createStripePaymentIntentBoost = catchAsync(async (req, res) => {
+  const userId: string = req.user.id;
+  const email: string = req.user.email;
+
+  const { offerId, amount } = req.body;
+
+  const isServiceExist = await Post.findById(offerId);
+
+  if (!isServiceExist) {
+    throw new AppError(StatusCodes.BAD_GATEWAY, 'Service is not found!');
+  }
+
+  if (isServiceExist.author.toString() !== userId) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'only service author can boost the service',
+    );
+  }
+
+  if (isServiceExist.boost) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Service is already boosted');
+  }
+
+  try {
+    const sessionUrl = await PaymentService.createStripePaymentIntent(
+      userId,
+      email,
+      offerId,
+      amount,
+      'boost',
     );
     res.status(200).json({ url: sessionUrl });
   } catch (error) {
@@ -126,4 +165,5 @@ export const PaymentController = {
   stripeConnect,
   createStripePaymentIntent,
   paymentStripeWebhookController,
+  createStripePaymentIntentBoost,
 };
