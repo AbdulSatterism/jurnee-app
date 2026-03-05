@@ -583,7 +583,25 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
           $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
         },
         liked: { $gt: [{ $size: '$viewerLike' }, 0] },
-        isAttend: { $gt: [{ $size: { $filter: { input: '$attenders', as: 'attender', cond: { $eq: ['$$attender._id', new mongoose.Types.ObjectId(userId)] } } } }, 0] },
+        isAttend: {
+          $gt: [
+            {
+              $size: {
+                $filter: {
+                  input: '$attenders',
+                  as: 'attender',
+                  cond: {
+                    $eq: [
+                      '$$attender._id',
+                      new mongoose.Types.ObjectId(userId),
+                    ],
+                  },
+                },
+              },
+            },
+            0,
+          ],
+        },
       },
     },
     {
@@ -639,6 +657,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
         updatedAt: 1,
         totalSaved: 1,
         hasTag: 1,
+        boost: 1,
       },
     },
   ]);
