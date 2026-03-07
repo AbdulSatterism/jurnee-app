@@ -1378,6 +1378,45 @@ const sideData = async (userId: string) => {
   };
 };
 
+// my boosted post by author
+
+const myBoostedPost = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const [post, total] = await Promise.all([
+    Post.find({ author: userId, boost: true })
+      .populate('author', 'name image _id')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ author: userId, boost: true }),
+  ]);
+
+  const totalPage = Math.ceil(total / size);
+
+  return {
+    data: post,
+    meta: {
+      page: pages,
+      limit: size,
+      totalPage,
+      total,
+    },
+  };
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -1399,4 +1438,5 @@ export const PostService = {
   detailWithRelevantPost,
   moment,
   sideData,
+  myBoostedPost,
 };

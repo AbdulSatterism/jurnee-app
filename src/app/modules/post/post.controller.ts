@@ -286,6 +286,23 @@ const sideData = catchAsync(async (req, res) => {
   });
 });
 
+const myBoostedPost = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const result = await PostService.myBoostedPost(userId, req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'My boosted posts retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -307,4 +324,5 @@ export const PostController = {
   detailWithRelevantPost,
   momnet,
   sideData,
+  myBoostedPost,
 };

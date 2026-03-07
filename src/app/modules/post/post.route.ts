@@ -218,4 +218,10 @@ router.get(
   PostController.sideData,
 );
 
+router.get(
+  '/boosted',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.myBoostedPost,
+);
+
 export const PostRoute = router;
