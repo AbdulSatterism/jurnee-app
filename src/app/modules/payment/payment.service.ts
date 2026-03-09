@@ -226,7 +226,11 @@ const handleStripeWebhookService = async (event: Stripe.Event & any) => {
         await payment.save();
 
         //* update offer status
-        await Post.findByIdAndUpdate(offerId, { boost: true }, { new: true });
+        await Post.findByIdAndUpdate(
+          offerId,
+          { boost: true, boostActivatedAt: new Date() },
+          { new: true },
+        );
       }
 
       break;

@@ -9,6 +9,7 @@ import config from './config';
 import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
 import seedAdmin from './DB';
+import { startBoostCron } from './util/boostCorn';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -32,6 +33,9 @@ async function main() {
     });
 
     await seedAdmin();
+    startBoostCron();
+
+    // update all posts  boostActivatedAt add this field and new date
 
     //socket
     const io = new Server(server, {

@@ -17,6 +17,13 @@ const createPost = async (author: string, payload: IPost) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
   }
 
+  if (payload.category === 'alert' && payload.expireLimit) {
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() + payload.expireLimit);
+
+    payload.alertExpire = expireDate;
+  }
+
   payload.author = isExist._id;
 
   if (payload.media && !Array.isArray(payload.media)) {

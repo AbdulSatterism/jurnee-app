@@ -52,6 +52,7 @@ export interface IPost {
   lastSeenDate?: Date;
   contactInfo?: string;
   expireLimit?: number; // in days
+  alertExpire?: Date;
   capacity?: number;
   amenities?: string[];
   licenses?: string;
@@ -59,6 +60,7 @@ export interface IPost {
   likes?: number;
   status?: 'PUBLISHED' | 'BLOCKED' | 'SUSPICIOUS';
   boost?: boolean;
+  boostActivatedAt?: Date;
   attenders?: Types.ObjectId[];
   isSaved?: boolean;
   totalSaved?: number;

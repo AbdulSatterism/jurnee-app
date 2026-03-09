@@ -67,6 +67,7 @@ const postSchema = new Schema<IPost>(
     lastSeenDate: { type: Date, default: null },
     contactInfo: { type: String, default: null },
     expireLimit: { type: Number, default: null }, // in days
+    alertExpire: { type: Date, default: null },
     capacity: { type: Number, default: null },
     amenities: { type: [String], default: null },
     licenses: { type: String, default: null },
@@ -76,6 +77,7 @@ const postSchema = new Schema<IPost>(
       default: 'PUBLISHED',
     },
     boost: { type: Boolean, default: false },
+    boostActivatedAt: { type: Date, default: null },
     attenders: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
     isSaved: { type: Boolean, default: false },
     totalSaved: { type: Number, default: 0 },
@@ -85,8 +87,9 @@ const postSchema = new Schema<IPost>(
 
 // Add 2dsphere index for geospatial queries
 postSchema.index({ location: '2dsphere' });
-
+postSchema.index({ alertExpire: 1 }, { expireAfterSeconds: 0 });
 postSchema.index({ category: 1 });
 postSchema.index({ title: 'text', description: 'text', hasTag: 'text' });
+postSchema.index({ boost: 1, boostActivatedAt: 1 });
 
 export const Post = model('Post', postSchema);
