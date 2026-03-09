@@ -7,7 +7,7 @@ import { Post } from './post.model';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Saved } from '../saved/saved.model';
 import { Comment } from '../comment/comment.model';
-import { Reply } from '../commentReply/commentReply.model';
+
 import { Review } from '../review/review.model';
 import axios from 'axios';
 
@@ -1146,7 +1146,7 @@ const deletePost = async (userId: string, postId: string) => {
   }
   await Post.findByIdAndDelete(postId);
 };
-
+/*
 const moment = async (postId: string, tab: string) => {
   const post = await Post.findById(postId).populate('author', 'name image');
   if (!post) {
@@ -1309,6 +1309,156 @@ const moment = async (postId: string, tab: string) => {
             });
           });
         }
+        if (review.image?.length) {
+          const images = Array.isArray(review.image)
+            ? review.image
+            : [review.image];
+          images.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'image',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+            });
+          });
+        }
+      });
+    }
+  }
+
+  return {
+    media,
+    mediaSource,
+    postInfo: {
+      authorName: (post.author as any)?.name,
+      likes: post.likes || 0,
+      views: post.views || 0,
+      category: post.category,
+      hasTag: post.hasTag,
+    },
+  };
+};
+
+*/
+
+const moment = async (postId: string, tab: string) => {
+  const post = await Post.findById(postId).populate('author', 'name image');
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  const media: string[] = [];
+  const mediaSource: Array<{
+    url: string;
+    type: string;
+    source: string;
+    userName: string;
+    userImage: string;
+    like?: number;
+  }> = [];
+
+  if (post.category?.toLowerCase() !== 'service') {
+    // --- Non‑service post (comments) ---
+    if (tab === 'all' || tab === 'owner') {
+      // Owner media from the post itself
+      if (post.media?.length) {
+        post.media.forEach(url => {
+          media.push(url);
+          mediaSource.push({
+            url,
+            type:
+              url.includes('.mp4') || url.includes('.mov') ? 'video' : 'image',
+            source: 'owner',
+            userName: (post.author as any).name,
+            userImage: (post.author as any).image,
+            like: post.likes || 0,
+          });
+        });
+      }
+    }
+
+    if (tab === 'all' || tab === 'community') {
+      // Fetch all comments (including nested replies) for this post
+      const comments = await Comment.find({ postId }).populate(
+        'userId',
+        'name image',
+      );
+
+      comments.forEach(comment => {
+        const user = comment.userId as any;
+
+        // Helper to add a media item
+        const addMedia = (url: string, type: string) => {
+          media.push(url);
+          mediaSource.push({
+            url,
+            type,
+            source: 'community',
+            userName: user?.name,
+            userImage: user?.image,
+            like: comment.like, // from IComment (number)
+          });
+        };
+
+        // Process video (string)
+        if (comment.video && comment.video.trim() !== '') {
+          addMedia(comment.video, 'video');
+        }
+
+        // Process image (string)
+        if (comment.image && comment.image.trim() !== '') {
+          addMedia(comment.image, 'image');
+        }
+      });
+    }
+  } else {
+    // --- Service post (reviews) – unchanged ---
+    if (tab === 'all' || tab === 'owner') {
+      if (post.media?.length) {
+        post.media.forEach(url => {
+          media.push(url);
+          mediaSource.push({
+            url,
+            type:
+              url.includes('.mp4') || url.includes('.mov') ? 'video' : 'image',
+            source: 'owner',
+            userName: (post.author as any).name,
+            userImage: (post.author as any).image,
+            like: post.likes || 0,
+          });
+        });
+      }
+    }
+
+    if (tab === 'all' || tab === 'community') {
+      const reviews = await Review.find({ postId }).populate(
+        'userId',
+        'name image',
+      );
+
+      reviews.forEach(review => {
+        const user = review.userId as any;
+
+        // Assuming review.video and review.image are arrays (as in original)
+        if (review.video?.length) {
+          const videos = Array.isArray(review.video)
+            ? review.video
+            : [review.video];
+          videos.forEach(url => {
+            media.push(url);
+            mediaSource.push({
+              url,
+              type: 'video',
+              source: 'community',
+              userName: user?.name,
+              userImage: user?.image,
+              // No like field for reviews in original code
+            });
+          });
+        }
+
         if (review.image?.length) {
           const images = Array.isArray(review.image)
             ? review.image
