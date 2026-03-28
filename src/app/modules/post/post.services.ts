@@ -150,7 +150,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   //  Distance filter (if user or query location provided)
   const userLat = lat ? parseFloat(lat) : userLocation?.lat;
   const userLng = lng ? parseFloat(lng) : userLocation?.lng;
-  const maxDist = maxDistance ? parseFloat(maxDistance) : 50000; // default 50km
+  const maxDist = maxDistance ? parseFloat(maxDistance) : 80470; // default 80.47km
   const ratingNum = typeof rating === 'string' ? parseFloat(rating) : rating;
 
   const geoNearStage =
@@ -488,6 +488,7 @@ const postDetails = async (postId: string, userId: string) => {
         amenities: 1,
         schedule: 1,
         startDate: 1,
+        contact: 1,
         endDate: 1,
         isSaved: 1,
         averageRating: 1,
@@ -1356,6 +1357,7 @@ const moment = async (postId: string, tab: string) => {
     source: string;
     userName: string;
     userImage: string;
+    userId: string;
     like?: number;
   }> = [];
 
@@ -1373,6 +1375,7 @@ const moment = async (postId: string, tab: string) => {
             source: 'owner',
             userName: (post.author as any).name,
             userImage: (post.author as any).image,
+            userId: (post.author as any)._id,
             like: post.likes || 0,
           });
         });
@@ -1398,6 +1401,7 @@ const moment = async (postId: string, tab: string) => {
             source: 'community',
             userName: user?.name,
             userImage: user?.image,
+            userId: user?._id,
             like: comment.like, // from IComment (number)
           });
         };
@@ -1426,6 +1430,7 @@ const moment = async (postId: string, tab: string) => {
             source: 'owner',
             userName: (post.author as any).name,
             userImage: (post.author as any).image,
+            userId: (post.author as any)._id,
             like: post.likes || 0,
           });
         });
@@ -1454,6 +1459,8 @@ const moment = async (postId: string, tab: string) => {
               source: 'community',
               userName: user?.name,
               userImage: user?.image,
+              userId: user?._id,
+
               // No like field for reviews in original code
             });
           });
@@ -1471,6 +1478,7 @@ const moment = async (postId: string, tab: string) => {
               source: 'community',
               userName: user?.name,
               userImage: user?.image,
+              userId: user?._id,
             });
           });
         }

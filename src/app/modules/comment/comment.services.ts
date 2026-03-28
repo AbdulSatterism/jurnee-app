@@ -72,7 +72,7 @@ const createComment = async (userId: string, payload: Partial<IComment>) => {
   }
 
   // Return populated user
-  return comment.populate('userId', 'name image');
+  return comment.populate('userId', 'name image _id');
 };
 
 const allCommentsByPostId = async (

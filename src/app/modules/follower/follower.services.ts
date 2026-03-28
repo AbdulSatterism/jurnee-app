@@ -58,7 +58,7 @@ const getAllFollowers = async (id: string, query: Record<string, unknown>) => {
 
   const [result, total] = await Promise.all([
     Follower.find(filter)
-      .populate('follower', 'name image -_id')
+      .populate('follower', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
@@ -95,7 +95,7 @@ const getAllFollowing = async (id: string, query: Record<string, unknown>) => {
 
   const [result, total] = await Promise.all([
     Follower.find(filter)
-      .populate('followed', 'name image -_id')
+      .populate('followed', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)

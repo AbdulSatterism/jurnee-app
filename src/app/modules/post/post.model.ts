@@ -71,6 +71,7 @@ const postSchema = new Schema<IPost>(
     capacity: { type: Number, default: null },
     amenities: { type: [String], default: null },
     licenses: { type: String, default: null },
+    contact: { type: String, default: '' },
     status: {
       type: String,
       enum: ['PUBLISHED', 'BLOCKED', 'SUSPICIOUS'],

@@ -45,6 +45,7 @@ export interface IPost {
   missingName?: string;
   missingAge?: number;
   clothingDescription?: string;
+  contact?: string;
   lastSeenLocation?: {
     type: 'Point';
     coordinates: [longitude: number, latitude: number];
