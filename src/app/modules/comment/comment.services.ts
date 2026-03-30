@@ -7,30 +7,6 @@ import AppError from '../../errors/AppError';
 import { Comment } from './comment.model';
 import { CommentLike } from '../like/like.model';
 
-/*
-const createComment = async (userId: string, payload: Partial<IComment>) => {
-  payload.userId = new Types.ObjectId(userId);
-
-  const post = await Post.findById(payload.postId);
-  if (!post) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
-  }
-
-  // this comment only for non-service post
-
-  if (post.category === 'service') {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      'service post cannot be commented on',
-    );
-  }
-
-  const comment = await Comment.create(payload);
-  return comment;
-};
-
-*/
-
 const createComment = async (userId: string, payload: Partial<IComment>) => {
   const { postId, parentComment, content, image, video } = payload;
 
@@ -106,7 +82,7 @@ const allCommentsByPostId = async (
     postId: postObjectId,
     parentComment: null,
   })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: -1 }) // sort by newest first
     .skip(skip)
     .limit(limit)
     .populate('userId', 'name image') // populate author details

@@ -22,12 +22,15 @@ const socket = (io: Server) => {
         chat: string;
         sender: string;
         message?: string;
+        image?: string;
+        video?: string;
         type?: string;
         offer?: string;
         isOwner?: boolean;
       }) => {
         try {
-          const { chat, sender, message, type, offer, isOwner } = payload;
+          const { chat, sender, message, image, video, type, offer, isOwner } =
+            payload;
 
           if (!chat || !sender) throw new Error('chat and sender are required');
 
@@ -36,6 +39,8 @@ const socket = (io: Server) => {
             chat,
             sender,
             message,
+            image,
+            video,
             type,
             offer,
             isOwner,
