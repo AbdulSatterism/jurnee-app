@@ -12,6 +12,12 @@ router.get(
 );
 
 router.get(
+  '/read',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  NotificationController.allNotificationReadBySpecificUser,
+);
+
+router.get(
   '/:id',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   NotificationController.singleNotification,

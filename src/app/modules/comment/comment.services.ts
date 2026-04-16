@@ -51,6 +51,137 @@ const createComment = async (userId: string, payload: Partial<IComment>) => {
   return comment.populate('userId', 'name image _id');
 };
 
+// const allCommentsByPostId = async (
+//   postId: string,
+//   viewerId: string,
+//   query: Record<string, unknown>,
+// ) => {
+//   const page = Math.max(1, parseInt(query.page as string) || 1);
+//   const limit = Math.max(1, parseInt(query.limit as string) || 10);
+//   const skip = (page - 1) * limit;
+
+//   // Validate IDs
+//   if (!Types.ObjectId.isValid(postId)) {
+//     throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid postId');
+//   }
+//   if (!Types.ObjectId.isValid(viewerId)) {
+//     throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid viewerId');
+//   }
+
+//   const postObjectId = new Types.ObjectId(postId);
+//   const viewerObjectId = new Types.ObjectId(viewerId);
+
+//   // Verify post exists
+//   const postExists = await Post.exists({ _id: postObjectId });
+//   if (!postExists) {
+//     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+//   }
+
+//   // 1. Fetch paginated top-level comments (parentComment: null)
+//   const topComments = await Comment.find({
+//     postId: postObjectId,
+//     parentComment: null,
+//   })
+//     .sort({ createdAt: -1 }) // sort by newest first
+//     .skip(skip)
+//     .limit(limit)
+//     .populate('userId', 'name image') // populate author details
+//     .lean();
+
+//   if (topComments.length === 0) {
+//     return {
+//       data: [],
+//       meta: { page, limit, totalPage: 0, total: 0 },
+//     };
+//   }
+
+//   // 2. Fetch ALL comments of this post (including replies) to build the tree
+//   const allComments = await Comment.find({ postId: postObjectId })
+//     .populate('userId', 'name image')
+//     .lean();
+
+//   // 3. Build a map: commentId -> comment with an empty children array
+//   const commentMap = new Map<string, any>();
+//   allComments.forEach(comment => {
+//     commentMap.set(comment._id.toString(), {
+//       ...comment,
+//       children: [],
+//     });
+//   });
+
+//   // 4. Attach each comment to its parent
+//   const roots: any[] = [];
+//   allComments.forEach(comment => {
+//     const commentWithChildren = commentMap.get(comment._id.toString());
+//     if (comment.parentComment) {
+//       const parent = commentMap.get(comment.parentComment.toString());
+//       if (parent) {
+//         parent.children.push(commentWithChildren);
+//       }
+//     } else {
+//       roots.push(commentWithChildren);
+//     }
+//   });
+
+//   // 5. Filter roots to only those that are in the current paginated topComments
+//   const paginatedRootIds = new Set(topComments.map(c => c._id.toString()));
+//   const paginatedRoots = roots.filter(root =>
+//     paginatedRootIds.has(root._id.toString()),
+//   );
+
+//   // 6. Collect all comment IDs from the paginated tree (including nested replies)
+//   const collectIds = (comments: any[]): string[] => {
+//     const ids: string[] = [];
+//     for (const c of comments) {
+//       ids.push(c._id.toString());
+//       if (c.children && c.children.length) {
+//         ids.push(...collectIds(c.children));
+//       }
+//     }
+//     return ids;
+//   };
+//   const allCommentIds = collectIds(paginatedRoots);
+
+//   const viewerLikes = await CommentLike.find({
+//     commentId: { $in: allCommentIds.map(id => new Types.ObjectId(id)) },
+//     userId: viewerObjectId,
+//   }).lean();
+
+//   const likedCommentIds = new Set(
+//     viewerLikes.map(like => like.commentId!.toString()),
+//   );
+
+//   // 8. Recursively add `liked` flag to each comment and clean up
+//   const addLikedFlag = (comment: any) => {
+//     comment.liked = likedCommentIds.has(comment._id.toString());
+//     // Rename userId to user (since populated)
+//     comment.user = comment.userId;
+//     delete comment.userId;
+//     if (comment.children && comment.children.length) {
+//       comment.children.forEach(addLikedFlag);
+//     }
+//     return comment;
+//   };
+
+//   paginatedRoots.forEach(addLikedFlag);
+
+//   // 9. Count total top-level comments for pagination metadata
+//   const totalTop = await Comment.countDocuments({
+//     postId: postObjectId,
+//     parentComment: null,
+//   });
+
+//   return {
+//     data: paginatedRoots,
+//     meta: {
+//       page,
+//       limit,
+//       totalPage: Math.ceil(totalTop / limit),
+//       total: totalTop,
+//     },
+//   };
+// };
+
 const allCommentsByPostId = async (
   postId: string,
   viewerId: string,
@@ -64,6 +195,7 @@ const allCommentsByPostId = async (
   if (!Types.ObjectId.isValid(postId)) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid postId');
   }
+
   if (!Types.ObjectId.isValid(viewerId)) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid viewerId');
   }
@@ -77,31 +209,39 @@ const allCommentsByPostId = async (
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
   }
 
-  // 1. Fetch paginated top-level comments (parentComment: null)
+  // 1. Fetch paginated top-level comments (newest first)
   const topComments = await Comment.find({
     postId: postObjectId,
     parentComment: null,
   })
-    .sort({ createdAt: -1 }) // sort by newest first
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate('userId', 'name image') // populate author details
+    .populate('userId', 'name image')
     .lean();
 
   if (topComments.length === 0) {
     return {
       data: [],
-      meta: { page, limit, totalPage: 0, total: 0 },
+      meta: {
+        page,
+        limit,
+        totalPage: 0,
+        total: 0,
+      },
     };
   }
 
-  // 2. Fetch ALL comments of this post (including replies) to build the tree
-  const allComments = await Comment.find({ postId: postObjectId })
+  // 2. Fetch all comments for this post (including replies)
+  const allComments = await Comment.find({
+    postId: postObjectId,
+  })
     .populate('userId', 'name image')
     .lean();
 
-  // 3. Build a map: commentId -> comment with an empty children array
+  // 3. Build a map: commentId -> comment with children array
   const commentMap = new Map<string, any>();
+
   allComments.forEach(comment => {
     commentMap.set(comment._id.toString(), {
       ...comment,
@@ -110,38 +250,40 @@ const allCommentsByPostId = async (
   });
 
   // 4. Attach each comment to its parent
-  const roots: any[] = [];
   allComments.forEach(comment => {
-    const commentWithChildren = commentMap.get(comment._id.toString());
+    const currentComment = commentMap.get(comment._id.toString());
+
     if (comment.parentComment) {
-      const parent = commentMap.get(comment.parentComment.toString());
-      if (parent) {
-        parent.children.push(commentWithChildren);
+      const parentComment = commentMap.get(comment.parentComment.toString());
+      if (parentComment) {
+        parentComment.children.push(currentComment);
       }
-    } else {
-      roots.push(commentWithChildren);
     }
   });
 
-  // 5. Filter roots to only those that are in the current paginated topComments
-  const paginatedRootIds = new Set(topComments.map(c => c._id.toString()));
-  const paginatedRoots = roots.filter(root =>
-    paginatedRootIds.has(root._id.toString()),
-  );
+  // 5. Preserve top-level comment order from topComments (newest first)
+  const paginatedRoots = topComments
+    .map(comment => commentMap.get(comment._id.toString()))
+    .filter(Boolean);
 
-  // 6. Collect all comment IDs from the paginated tree (including nested replies)
+  // 6. Collect all comment IDs from paginated roots including nested replies
   const collectIds = (comments: any[]): string[] => {
     const ids: string[] = [];
-    for (const c of comments) {
-      ids.push(c._id.toString());
-      if (c.children && c.children.length) {
-        ids.push(...collectIds(c.children));
+
+    for (const comment of comments) {
+      ids.push(comment._id.toString());
+
+      if (comment.children && comment.children.length > 0) {
+        ids.push(...collectIds(comment.children));
       }
     }
+
     return ids;
   };
+
   const allCommentIds = collectIds(paginatedRoots);
 
+  // 7. Fetch likes for current viewer
   const viewerLikes = await CommentLike.find({
     commentId: { $in: allCommentIds.map(id => new Types.ObjectId(id)) },
     userId: viewerObjectId,
@@ -151,21 +293,22 @@ const allCommentsByPostId = async (
     viewerLikes.map(like => like.commentId!.toString()),
   );
 
-  // 8. Recursively add `liked` flag to each comment and clean up
+  // 8. Add liked flag and rename userId -> user
   const addLikedFlag = (comment: any) => {
     comment.liked = likedCommentIds.has(comment._id.toString());
-    // Rename userId to user (since populated)
     comment.user = comment.userId;
     delete comment.userId;
-    if (comment.children && comment.children.length) {
+
+    if (comment.children && comment.children.length > 0) {
       comment.children.forEach(addLikedFlag);
     }
+
     return comment;
   };
 
   paginatedRoots.forEach(addLikedFlag);
 
-  // 9. Count total top-level comments for pagination metadata
+  // 9. Count total top-level comments for pagination
   const totalTop = await Comment.countDocuments({
     postId: postObjectId,
     parentComment: null,

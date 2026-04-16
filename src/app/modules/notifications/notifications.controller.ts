@@ -21,6 +21,24 @@ const allNotificationBySpecificUser = catchAsync(async (req, res) => {
     data: result.data,
   });
 });
+const allNotificationReadBySpecificUser = catchAsync(async (req, res) => {
+  const result = await NotificationService.allNotificationReadBySpecificUser(
+    req.user.id,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Notifications retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
 
 const singleNotification = catchAsync(async (req, res) => {
   const result = await NotificationService.singleNotification(req.params.id);
@@ -49,4 +67,5 @@ export const NotificationController = {
   allNotificationBySpecificUser,
   singleNotification,
   deleteNotification,
+  allNotificationReadBySpecificUser,
 };
