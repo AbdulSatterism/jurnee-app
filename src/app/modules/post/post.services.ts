@@ -795,7 +795,7 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
 // attend in the event in this field =>  attenders?: Types.ObjectId[];
 
 const joinEvent = async (userId: string, postId: string) => {
-  const post = await Post.findById(postId);
+  const post = await Post.findById(postId).populate('author', 'name image _id');
   if (!post) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
   }
@@ -882,6 +882,7 @@ const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
   const [post, total] = await Promise.all([
     Post.find({ attenders: userId })
       .populate('attenders', 'name image -_id')
+      .populate('author', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
@@ -915,6 +916,7 @@ const userJoinEvents = async (
   const [post, total] = await Promise.all([
     Post.find({ _id: postId })
       .populate('attenders', 'name email image -_id')
+      .populate('author', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)

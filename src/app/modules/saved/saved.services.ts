@@ -32,7 +32,10 @@ const mySavedPost = async (userId: string, query: Record<string, unknown>) => {
 
   const [post, total] = await Promise.all([
     Saved.find({ userId })
-      .populate({ path: 'postId' })
+      .populate({
+        path: 'postId',
+        populate: { path: 'author', select: 'name image _id' },
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
