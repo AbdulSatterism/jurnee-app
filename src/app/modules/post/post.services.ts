@@ -795,7 +795,9 @@ const detailWithRelevantPost = async (postId: string, userId: string) => {
 // attend in the event in this field =>  attenders?: Types.ObjectId[];
 
 const joinEvent = async (userId: string, postId: string) => {
-  const post = await Post.findById(postId).populate('author', 'name image _id');
+  const post = await Post.findById(postId)
+    .populate('author', 'name image _id')
+    .populate('attenders', 'name image _id');
   if (!post) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
   }
@@ -836,9 +838,9 @@ const joinEvent = async (userId: string, postId: string) => {
   }
 
   post.attenders.push(id);
-  await post.save();
+  const updatedPost = await post.save();
 
-  return post;
+  return updatedPost;
 };
 
 // update post by the author

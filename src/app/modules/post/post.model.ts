@@ -79,7 +79,15 @@ const postSchema = new Schema<IPost>(
     },
     boost: { type: Boolean, default: false },
     boostActivatedAt: { type: Date, default: null },
-    attenders: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
+    attenders: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+      ],
+      default: [],
+    },
     isSaved: { type: Boolean, default: false },
     totalSaved: { type: Number, default: 0 },
   },
