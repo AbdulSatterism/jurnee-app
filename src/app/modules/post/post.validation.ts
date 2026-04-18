@@ -137,7 +137,7 @@ const alertMissingPersonValidation = z.object({
     missingAge: z.number().min(0, 'Missing person age is required'),
     clothingDescription: z.string(),
     lastSeenDate: z.string(),
-    contactInfo: z.string().min(1, 'Contact information is required'),
+    contactInfo: z.string().optional(),
     expireLimit: z.number(),
   }),
 });
@@ -154,7 +154,7 @@ const alertValidation = z.object({
       coordinates: z.array(z.number()).length(2),
     }),
     hasTag: z.array(z.string()),
-    contactInfo: z.string().min(1, 'Contact information is required'),
+    contactInfo: z.string().optional(),
     expireLimit: z.number(),
   }),
 });
