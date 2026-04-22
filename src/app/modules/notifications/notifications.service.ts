@@ -55,7 +55,7 @@ const allNotificationReadBySpecificUser = async (
   }
 
   const [notifications, total] = await Promise.all([
-    Notification.find({ receiverId: userId, read: true })
+    Notification.updateMany({ receiverId: userId, read: false }, { read: true })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
