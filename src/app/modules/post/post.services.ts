@@ -495,6 +495,7 @@ const postDetails = async (postId: string, userId: string) => {
     // Project necessary fields to return in the final result
     {
       $project: {
+        'author._id': 1,
         'author.name': 1,
         'author.image': 1,
         'attenders.name': 1,
