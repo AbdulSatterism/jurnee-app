@@ -17,9 +17,15 @@ const toggleLike = async (userId: string, postId: string) => {
 
   if (likeExists) {
     await Like.findByIdAndDelete(likeExists._id);
-    await Post.findByIdAndUpdate(postId, {
-      $inc: { likes: -1 },
-    });
+    await Post.findByIdAndUpdate(postId, [
+      {
+        $set: {
+          likes: {
+            $max: [{ $subtract: ['$likes', 1] }, 0],
+          },
+        },
+      },
+    ]);
     return 'disliked';
   } else {
     const result = await Like.create({ userId, postId });
@@ -52,9 +58,15 @@ const commentLikeToggle = async (userId: string, commentId: string) => {
 
   if (likeExists) {
     await CommentLike.findByIdAndDelete(likeExists._id);
-    await Comment.findByIdAndUpdate(commentId, {
-      $inc: { like: -1 },
-    });
+    await Comment.findByIdAndUpdate(commentId, [
+      {
+        $set: {
+          like: {
+            $max: [{ $subtract: ['$likes', 1] }, 0],
+          },
+        },
+      },
+    ]);
     return 'disliked';
   } else {
     const result = await CommentLike.create({ userId, commentId });
