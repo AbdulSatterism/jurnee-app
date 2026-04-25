@@ -885,14 +885,14 @@ const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
   }
 
   const [post, total] = await Promise.all([
-    Post.find({ attenders: userId })
+    Post.find({ attenders: { $in: [userId] } })
       .populate('attenders', 'name image _id')
       .populate('author', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
       .lean(),
-    Post.countDocuments({ attenders: userId }),
+    Post.countDocuments({ attenders: { $in: [userId] } }),
   ]);
 
   const totalPage = Math.ceil(total / size);
@@ -910,7 +910,7 @@ const myJoinEvents = async (userId: string, query: Record<string, unknown>) => {
 // user join events
 
 const userJoinEvents = async (
-  postId: string,
+  userId: string,
   query: Record<string, unknown>,
 ) => {
   const { page, limit } = query;
@@ -919,14 +919,14 @@ const userJoinEvents = async (
   const skip = (pages - 1) * size;
 
   const [post, total] = await Promise.all([
-    Post.find({ _id: postId })
+    Post.find({ attenders: { $in: [userId] } })
       .populate('attenders', 'name email image _id')
       .populate('author', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
       .lean(),
-    Post.countDocuments({ _id: postId }),
+    Post.countDocuments({ attenders: { $in: [userId] } }),
   ]);
 
   const totalPage = Math.ceil(total / size);
