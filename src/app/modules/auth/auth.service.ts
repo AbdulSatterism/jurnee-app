@@ -392,6 +392,10 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
       googleId: uid,
       role: 'USER',
       verified: true, // Google accounts are pre-verified
+      location: {
+        type: 'Point',
+        coordinates: [0, 0],
+      },
     });
   } else if (!user.googleId) {
     // Update existing user with Google ID if they haven't logged in with Google before
