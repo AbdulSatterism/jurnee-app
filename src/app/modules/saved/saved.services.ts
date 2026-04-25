@@ -34,7 +34,10 @@ const mySavedPost = async (userId: string, query: Record<string, unknown>) => {
     Saved.find({ userId })
       .populate({
         path: 'postId',
-        populate: { path: 'author', select: 'name image _id' },
+        populate: [
+          { path: 'author', select: 'name image _id' },
+          { path: 'attenders', select: 'name image _id' },
+        ],
       })
       .sort({ createdAt: -1 })
       .skip(skip)

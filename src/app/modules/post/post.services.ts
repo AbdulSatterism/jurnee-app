@@ -1027,6 +1027,7 @@ const userPost = async (userId: string, query: Record<string, unknown>) => {
   const [post, total] = await Promise.all([
     Post.find({ author: userId })
       .populate('author', 'name image _id')
+      .populate('attenders', 'name image _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(size)
