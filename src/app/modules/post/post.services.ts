@@ -516,6 +516,7 @@ const postDetails = async (postId: string, userId: string) => {
         amenities: 1,
         schedule: 1,
         startDate: 1,
+        startTime: 1,
         contact: 1,
         endDate: 1,
         isSaved: 1,
