@@ -464,7 +464,7 @@ const postDetails = async (postId: string, userId: string) => {
         feedback: {
           $cond: [{ $eq: ['$category', 'service'] }, '$reviews', '$comments'],
         },
-        liked: { $gt: [{ $size: '$viewerLike' }, 0] },
+        isLiked: { $gt: [{ $size: '$viewerLike' }, 0] },
       },
     },
 
