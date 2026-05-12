@@ -1424,6 +1424,25 @@ const myBoostedPost = async (
   };
 };
 
+// delete post by admin which is   'BLOCKED' | 'SUSPICIOUS' not PUBLISHED
+
+const deletePostByAdmin = async (postId: string) => {
+  const post = await Post.findById(postId);
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  // Only allow deletion if post is BLOCKED or SUSPICIOUS
+  if (post.status === 'PUBLISHED') {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'published post cannot be deleted',
+    );
+  }
+
+  await Post.findByIdAndDelete(postId);
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -1446,4 +1465,5 @@ export const PostService = {
   moment,
   sideData,
   myBoostedPost,
+  deletePostByAdmin,
 };

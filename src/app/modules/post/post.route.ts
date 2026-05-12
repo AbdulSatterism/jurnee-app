@@ -224,4 +224,12 @@ router.get(
   PostController.myBoostedPost,
 );
 
+// for admin dashboard
+
+router.delete(
+  '/admin/:id',
+  auth(USER_ROLES.ADMIN),
+  PostController.deletePostByAdmin,
+);
+
 export const PostRoute = router;

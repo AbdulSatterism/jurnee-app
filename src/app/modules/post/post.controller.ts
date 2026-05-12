@@ -303,6 +303,17 @@ const myBoostedPost = catchAsync(async (req, res) => {
   });
 });
 
+const deletePostByAdmin = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const result = await PostService.deletePostByAdmin(postId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post deleted successfully by admin',
+    data: result,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -325,4 +336,5 @@ export const PostController = {
   momnet,
   sideData,
   myBoostedPost,
+  deletePostByAdmin,
 };
