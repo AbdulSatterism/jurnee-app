@@ -50,21 +50,38 @@ const createUserFromDb = async (payload: IUser) => {
   return result;
 };
 
-const getAllUsers = async (query: Record<string, unknown>) => {
+const getAllUsers = async (userId: string, query: Record<string, unknown>) => {
   const { page, limit } = query;
   const pages = parseInt(page as string) || 1;
   const size = parseInt(limit as string) || 10;
   const skip = (pages - 1) * size;
 
-  const [result, total] = await Promise.all([
-    User.find().sort({ createdAt: -1 }).skip(skip).limit(size).lean(),
-    User.countDocuments(),
-  ]);
+  let data: any[] = [];
+  let total = 0;
+
+  if (query.searchTerm) {
+    const { searchTerm } = query as { searchTerm: string };
+    data = await User.find({
+      $or: [
+        { phone: { $regex: searchTerm, $options: 'i' } },
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { email: { $regex: searchTerm, $options: 'i' } },
+        { address: { $regex: searchTerm, $options: 'i' } },
+      ],
+      _id: { $ne: userId },
+    }).lean();
+    total = data.length;
+  } else {
+    [data, total] = await Promise.all([
+      User.find().sort({ createdAt: -1 }).skip(skip).limit(size).lean(),
+      User.countDocuments(),
+    ]);
+  }
 
   const totalPage = Math.ceil(total / size);
 
   return {
-    data: result,
+    data: data,
     meta: {
       page: pages,
       limit: size,
@@ -161,6 +178,7 @@ const searchUserByPhone = async (searchTerm: string, userId: string) => {
       $or: [
         { phone: { $regex: searchTerm, $options: 'i' } },
         { name: { $regex: searchTerm, $options: 'i' } },
+        { email: { $regex: searchTerm, $options: 'i' } },
       ],
       _id: { $ne: userId },
     });
@@ -179,6 +197,11 @@ const deleteUser = async (id: string) => {
   const result = await User.findByIdAndDelete(id);
   return result;
 };
+
+/*
+1. get specific user profile with all followers, following, and all posts with pagination, total saved posts, 
+
+*/
 
 export const UserService = {
   createUserFromDb,
