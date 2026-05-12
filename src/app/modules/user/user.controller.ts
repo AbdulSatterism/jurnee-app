@@ -147,6 +147,19 @@ const connectStripeAccount = catchAsync(async (req, res) => {
   });
 });
 
+const userProfileWithAllData = catchAsync(async (req, res) => {
+  const result = await UserService.userProfileWithAllData(
+    req.params.id,
+    req.query,
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User profile with all data retrieved successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -156,4 +169,5 @@ export const UserController = {
   getAllUser,
   deleteUser,
   connectStripeAccount,
+  userProfileWithAllData,
 };

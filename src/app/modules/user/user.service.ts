@@ -15,6 +15,8 @@ import AppError from '../../errors/AppError';
 import { deleteFromCloudinary } from '../../../helpers/cloudinaryHelper';
 import { Types } from 'mongoose';
 import { Follower } from '../follower/follower.model';
+import { Post } from '../post/post.model';
+import { Saved } from '../saved/saved.model';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
@@ -198,10 +200,74 @@ const deleteUser = async (id: string) => {
   return result;
 };
 
-/*
-1. get specific user profile with all followers, following, and all posts with pagination, total saved posts, 
+const userProfileWithAllData = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const user = await User.findById(userId).lean();
 
-*/
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const { page, limit } = query;
+  const pages = parseInt(page as string) || 1;
+  const size = parseInt(limit as string) || 10;
+  const skip = (pages - 1) * size;
+
+  const [
+    posts,
+    totalPosts,
+    savedPostsData,
+    attendingEventsData,
+    followers,
+    following,
+    totalSavedPosts,
+    totalAttendingEvents,
+  ] = await Promise.all([
+    Post.find({ author: user._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.countDocuments({ author: user._id }),
+    Saved.find({ userId: user._id })
+      .populate('postId', 'name')
+      .populate('userId', 'name email image')
+      .skip(skip)
+      .limit(size)
+      .lean(),
+    Post.find({ attenders: user._id }).skip(skip).limit(size).lean(),
+    Follower.countDocuments({ followed: user._id, isFollower: true }),
+    Follower.countDocuments({ follower: user._id, isFollower: true }),
+    Saved.countDocuments({ userId: user._id }),
+    Post.countDocuments({ attenders: user._id }),
+  ]);
+
+  const createPaginationMeta = (total: number) => ({
+    page: pages,
+    limit: size,
+    totalPage: Math.ceil(total / size),
+    total,
+  });
+
+  return {
+    followers,
+    following,
+    posts: {
+      data: posts,
+      meta: createPaginationMeta(totalPosts),
+    },
+    savedPosts: {
+      data: savedPostsData,
+      meta: createPaginationMeta(totalSavedPosts),
+    },
+    attendingEvents: {
+      data: attendingEventsData,
+      meta: createPaginationMeta(totalAttendingEvents),
+    },
+  };
+};
 
 export const UserService = {
   createUserFromDb,
@@ -211,4 +277,5 @@ export const UserService = {
   searchUserByPhone,
   getAllUsers,
   deleteUser,
+  userProfileWithAllData,
 };

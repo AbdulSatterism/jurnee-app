@@ -64,6 +64,14 @@ router.delete(
   UserController.deleteUser,
 );
 
+// for admin to get user profile with all data
+
+router.get(
+  '/profile/:id',
+  auth(USER_ROLES.ADMIN),
+  UserController.userProfileWithAllData,
+);
+
 router.get('/connect-stripe', auth(), UserController.connectStripeAccount);
 router.post('/connect-stripe', auth(), UserController.connectStripeAccount);
 
