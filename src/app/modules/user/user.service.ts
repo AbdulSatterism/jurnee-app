@@ -279,24 +279,26 @@ const getDashboardStats = async (query: Record<string, unknown>) => {
     totalServices,
     totalEvents,
     totalDeals,
-    recentUsers,
     totalReports,
+    recentUsers,
   ] = await Promise.all([
     User.countDocuments(),
     Post.countDocuments({ category: 'service' }),
     Post.countDocuments({ category: 'event' }),
     Post.countDocuments({ category: 'deal' }),
     Report.countDocuments(),
-    User.find({
-      $or: [
-        { name: { $regex: searchTerm, $options: 'i' } },
-        { email: { $regex: searchTerm, $options: 'i' } },
-        { phone: { $regex: searchTerm, $options: 'i' } },
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .lean(),
+    ((): any => {
+      const filter: Record<string, unknown> = {};
+      if (searchTerm) {
+        filter.$or = [
+          { name: { $regex: searchTerm, $options: 'i' } },
+          { email: { $regex: searchTerm, $options: 'i' } },
+          { phone: { $regex: searchTerm, $options: 'i' } },
+        ];
+      }
+
+      return User.find(filter).sort({ createdAt: -1 }).limit(10).lean();
+    })(),
   ]);
 
   return {
