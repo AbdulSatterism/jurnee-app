@@ -72,6 +72,12 @@ router.get(
   UserController.userProfileWithAllData,
 );
 
+router.get(
+  '/dashboard-stats',
+  auth(USER_ROLES.ADMIN),
+  UserController.getDashboardStats,
+);
+
 router.get('/connect-stripe', auth(), UserController.connectStripeAccount);
 router.post('/connect-stripe', auth(), UserController.connectStripeAccount);
 

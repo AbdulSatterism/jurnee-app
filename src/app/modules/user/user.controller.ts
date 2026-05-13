@@ -160,6 +160,16 @@ const userProfileWithAllData = catchAsync(async (req, res) => {
   });
 });
 
+const getDashboardStats = catchAsync(async (req, res) => {
+  const result = await UserService.getDashboardStats(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Dashboard stats retrieved successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -169,5 +179,6 @@ export const UserController = {
   getAllUser,
   deleteUser,
   connectStripeAccount,
+  getDashboardStats,
   userProfileWithAllData,
 };

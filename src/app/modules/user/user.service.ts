@@ -17,6 +17,7 @@ import { Types } from 'mongoose';
 import { Follower } from '../follower/follower.model';
 import { Post } from '../post/post.model';
 import { Saved } from '../saved/saved.model';
+import { Report } from '../report/report.model';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
@@ -269,6 +270,45 @@ const userProfileWithAllData = async (
   };
 };
 
+// total user count, total service count, total event count, total deal count, total report count ( post collection has  'event' | 'service' | 'alert' | 'deal' category) and report collection and gimme recent users with search by name or email or phone
+
+const getDashboardStats = async (query: Record<string, unknown>) => {
+  const { searchTerm } = query as { searchTerm: string };
+  const [
+    totalUsers,
+    totalServices,
+    totalEvents,
+    totalDeals,
+    recentUsers,
+    totalReports,
+  ] = await Promise.all([
+    User.countDocuments(),
+    Post.countDocuments({ category: 'service' }),
+    Post.countDocuments({ category: 'event' }),
+    Post.countDocuments({ category: 'deal' }),
+    Report.countDocuments(),
+    User.find({
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { email: { $regex: searchTerm, $options: 'i' } },
+        { phone: { $regex: searchTerm, $options: 'i' } },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean(),
+  ]);
+
+  return {
+    totalUsers,
+    totalServices,
+    totalEvents,
+    totalDeals,
+    totalReports,
+    recentUsers,
+  };
+};
+
 export const UserService = {
   createUserFromDb,
   getUserProfileFromDB,
@@ -278,4 +318,5 @@ export const UserService = {
   getAllUsers,
   deleteUser,
   userProfileWithAllData,
+  getDashboardStats,
 };
