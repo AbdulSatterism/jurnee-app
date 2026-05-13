@@ -22,6 +22,7 @@ app.use(
       'http://localhost:3001',
       'https://test.joinjurnee.com',
       'https://joinjurnee.com',
+      'https://dashboard.joinjurnee.com',
     ],
     credentials: true,
   }),
