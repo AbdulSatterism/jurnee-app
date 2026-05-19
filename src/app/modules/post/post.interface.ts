@@ -90,3 +90,9 @@ export interface AIData {
   id: string;
   media: string[];
 }
+
+export interface IBoost {
+  serviceId: string;
+  transactionId: string;
+  amount: number;
+}

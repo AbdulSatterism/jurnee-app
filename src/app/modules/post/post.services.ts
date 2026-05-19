@@ -2,14 +2,14 @@
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
-import { AIData, IPost, IQuery } from './post.interface';
+import { AIData, IBoost, IPost, IQuery } from './post.interface';
 import { Post } from './post.model';
 import mongoose, { FilterQuery } from 'mongoose';
 import { Saved } from '../saved/saved.model';
 import { Comment } from '../comment/comment.model';
-
 import { Review } from '../review/review.model';
 import axios from 'axios';
+import { Payment } from '../payment/payment.model';
 
 const createPost = async (author: string, payload: IPost) => {
   const isExist = await User.findById(author);
@@ -1443,6 +1443,43 @@ const deletePostByAdmin = async (postId: string) => {
   await Post.findByIdAndDelete(postId);
 };
 
+// boost post
+const boost = async (userId: string, payload: IBoost) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const post = await Post.findById(payload.serviceId);
+  if (!post) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Post not found');
+  }
+
+  if (post.boost) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Post is already boosted, please wait until the boost period is over',
+    );
+  }
+
+  await Payment.create({
+    userId,
+    offerId: payload.serviceId,
+    status: 'COMPLETED',
+    transactionId: payload.transactionId,
+    amount: payload.amount,
+  });
+
+  //update offer status
+  await Post.findByIdAndUpdate(
+    payload.serviceId,
+    { boost: true, boostActivatedAt: new Date() },
+    { new: true },
+  );
+
+  return null;
+};
+
 export const PostService = {
   createPost,
   getAllPosts,
@@ -1466,4 +1503,5 @@ export const PostService = {
   sideData,
   myBoostedPost,
   deletePostByAdmin,
+  boost,
 };

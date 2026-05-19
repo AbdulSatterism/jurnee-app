@@ -224,6 +224,13 @@ router.get(
   PostController.myBoostedPost,
 );
 
+// boost post for mobile app
+router.post(
+  '/boost',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  PostController.boost,
+);
+
 // for admin dashboard
 
 router.delete(

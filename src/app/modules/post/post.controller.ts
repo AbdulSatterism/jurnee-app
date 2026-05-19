@@ -314,6 +314,20 @@ const deletePostByAdmin = catchAsync(async (req, res) => {
   });
 });
 
+// boost post for mobile app
+
+const boost = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const payload = req.body;
+  const result = await PostService.boost(userId, payload);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post boosted successfully',
+    data: result,
+  });
+});
+
 export const PostController = {
   createPost,
   getAllPosts,
@@ -337,4 +351,5 @@ export const PostController = {
   sideData,
   myBoostedPost,
   deletePostByAdmin,
+  boost,
 };
