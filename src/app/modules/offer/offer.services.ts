@@ -341,9 +341,22 @@ const completedOffersByProvider = async (
   };
 };
 
+const getOfferById = async (offerId: string) => {
+  const offer = await Offer.findById(offerId)
+    .lean()
+    .populate(
+      'service',
+      'image title description location category subcategory',
+    )
+    .populate('provider', 'name email image address');
+
+  return offer;
+};
+
 export const OfferService = {
   completeOffer,
   createOffer,
+  getOfferById,
   acceptOffer,
   rejectOffer,
   upcomingOffers,

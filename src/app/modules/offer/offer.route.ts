@@ -56,4 +56,10 @@ router.post(
   OfferController.completeOffer,
 );
 
+router.get(
+  '/:id',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  OfferController.getOfferById,
+);
+
 export const OfferRoute = router;

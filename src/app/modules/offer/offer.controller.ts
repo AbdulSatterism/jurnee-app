@@ -121,6 +121,18 @@ const completeOffer = catchAsync(async (req, res) => {
   });
 });
 
+const getOfferById = catchAsync(async (req, res) => {
+  const offerId = req.params.id;
+  const result = await OfferService.getOfferById(offerId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Offer retrieved successfully',
+    data: result,
+  });
+});
+
 export const OfferController = {
   createOffer,
   acceptOffer,
@@ -130,4 +142,5 @@ export const OfferController = {
   incompletedOffersByProvider,
   completedOffersByProvider,
   completeOffer,
+  getOfferById,
 };
