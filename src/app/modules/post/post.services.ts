@@ -1203,6 +1203,19 @@ const moment = async (postId: string, tab: string) => {
     like?: number;
   }> = [];
 
+  if (post.image) {
+    media.push(post.image);
+    mediaSource.push({
+      url: post.image,
+      type: 'image',
+      source: 'owner',
+      userName: (post.author as any).name,
+      userImage: (post.author as any).image,
+      userId: (post.author as any)._id,
+      like: post.likes || 0,
+    });
+  }
+
   if (post.category?.toLowerCase() !== 'service') {
     // --- Non‑service post (comments) ---
     if (tab === 'all' || tab === 'owner') {
