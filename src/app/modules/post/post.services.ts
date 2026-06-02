@@ -169,12 +169,15 @@ const getAllPosts = async (query: IQuery, userId: string) => {
 
   // Main aggregation pipeline
 
-  // exclude past posts. if startDate exists and has passed from current date, exclude this post
+  // exclude past posts. allow today's posts and future posts
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
   const startDateFilter = {
     $or: [
       { startDate: { $exists: false } },
       { startDate: null },
-      { startDate: { $gt: new Date() } },
+      { startDate: { $gte: todayStart } },
     ],
   };
 
