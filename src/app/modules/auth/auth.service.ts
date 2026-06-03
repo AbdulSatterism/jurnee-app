@@ -465,7 +465,7 @@ const appleLogin = async (payload: { token: string }) => {
 
     // Step 2 — Prepare user fields
     const userFields = {
-      name: appleData.name || '',
+      name: appleData.name || 'apple_user',
       email: appleData.email,
       appleId: appleData.sub,
       role: 'USER' as const,
