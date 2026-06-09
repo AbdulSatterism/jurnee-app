@@ -6,12 +6,14 @@ import fileUploader from '../../middlewares/fileUploadHandler';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 import validateRequest from '../../middlewares/validateRequest';
+import { registerLimiter } from '../../middlewares/registerLimiter';
 // import { cacheGet } from '../../middlewares/cacheGet';
 
 const router = express.Router();
 
 router.post(
   '/create-user',
+  registerLimiter,
   validateRequest(UserValidation.createUserSchema),
   UserController.createUser,
 );
