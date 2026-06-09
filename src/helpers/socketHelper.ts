@@ -24,7 +24,7 @@ const socket = (io: Server) => {
         message?: string;
         image?: string;
         video?: string;
-        type?: string;
+        type?: 'offer' | 'text' | 'quote' | 'media';
         offer?: string;
         isOwner?: boolean;
       }) => {
@@ -46,7 +46,7 @@ const socket = (io: Server) => {
             isOwner,
           });
 
-          const populatedMessage = await Message.findById(newMessage._id)
+          const populatedMessage = await Message.findById((newMessage as any)._id)
             .populate('sender', 'name image _id')
             .populate({
               path: 'offer',

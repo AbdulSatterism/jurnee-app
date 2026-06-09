@@ -156,21 +156,23 @@ userSchema.statics.isMatchPassword = async (
 };
 
 //check user
-userSchema.pre('save', async function (next) {
-  //check user
-  const isExist = await User.findOne({ email: this.email });
-  if (isExist) {
-    throw new AppError(StatusCodes.BAD_REQUEST, 'Email already used');
+userSchema.pre('save', async function () {
+  if (this.isNew) {
+    const isExist = await User.findOne({
+      email: this.email,
+    });
+
+    if (isExist) {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Email already used');
+    }
   }
 
-  //password hash
   if (this.password) {
-    this.password = (await bcrypt.hash(
+    this.password = await bcrypt.hash(
       this.password,
       Number(config.bcrypt_salt_rounds),
-    )) as string;
+    );
   }
-  next();
 
   this.stripeAccountId ??= await getStripeAccountId(this.email);
 });

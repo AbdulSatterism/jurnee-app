@@ -4,7 +4,7 @@ import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { AIData, IBoost, IPost, IQuery } from './post.interface';
 import { Post } from './post.model';
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose from 'mongoose';
 import { Saved } from '../saved/saved.model';
 import { Comment } from '../comment/comment.model';
 import { Review } from '../review/review.model';
@@ -86,7 +86,7 @@ const getAllPosts = async (query: IQuery, userId: string) => {
   const skip = (pageNum - 1) * pageSize;
 
   // Base filter
-  const filter: FilterQuery<IPost> = {
+  const filter: any = {
     status: 'PUBLISHED',
   };
 
