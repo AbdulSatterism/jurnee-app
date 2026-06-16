@@ -10,7 +10,7 @@ import { errorLogger, logger } from './shared/logger';
 import seedAdmin from './DB';
 import { startBoostCron } from './util/boostCorn';
 
-mongoose.set('sanitizeFilter', true);
+// mongoose.set('sanitizeFilter', true);
 
 // Uncaught Exception
 process.on('uncaughtException', error => {
