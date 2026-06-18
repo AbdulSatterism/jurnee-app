@@ -212,11 +212,7 @@ router.delete(
   PostController.deletePost,
 );
 
-router.get(
-  '/moment/:id/:tab',
-  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
-  PostController.momnet,
-);
+router.get('/moment/:id/:tab', PostController.momnet);
 
 router.get(
   '/side-data',
