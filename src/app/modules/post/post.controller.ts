@@ -34,10 +34,37 @@ const getAllPosts = catchAsync(async (req, res) => {
   });
 });
 
+const globalAllPost = catchAsync(async (req, res) => {
+  const result = await PostService.globalAllPost(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Posts retrieved successfully',
+    meta: {
+      page: Number(result.meta.page),
+      limit: Number(result.meta.limit),
+      totalPage: result.meta.totalPage,
+      total: result.meta.total,
+    },
+    data: result.data,
+  });
+});
+
 const postDetails = catchAsync(async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
   const result = await PostService.postDetails(postId, userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Post retrieved successfully',
+    data: result,
+  });
+});
+
+const globalPostDetails = catchAsync(async (req, res) => {
+  const postId = req.params.id;
+  const result = await PostService.globalPostDetails(postId);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -332,6 +359,7 @@ export const PostController = {
   createPost,
   getAllPosts,
   postDetails,
+  globalPostDetails,
   joinEvent,
   myJoinEvent,
   myService,
@@ -352,4 +380,5 @@ export const PostController = {
   myBoostedPost,
   deletePostByAdmin,
   boost,
+  globalAllPost,
 };

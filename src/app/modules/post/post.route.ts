@@ -130,12 +130,18 @@ router.get(
   PostController.getAllPosts,
 );
 
+// global
+router.get('/global', PostController.globalAllPost);
+
 // Get post details
 router.get(
   '/details/:id',
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   PostController.postDetails,
 );
+
+// global post details
+router.get('/global/:id', PostController.globalPostDetails);
 
 router.get(
   '/relevant/:id',
