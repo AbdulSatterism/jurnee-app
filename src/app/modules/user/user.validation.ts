@@ -19,6 +19,7 @@ const updateUserProfileSchema = z.object({
     phone: z.string().optional(),
     bio: z.string().optional(),
     address: z.string().optional(),
+    card: z.string().optional(),
     location: z
       .object({
         type: z.literal('Point'),

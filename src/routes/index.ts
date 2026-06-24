@@ -21,6 +21,7 @@ import { CommentRoutes } from '../app/modules/comment/comment.route';
 import { replyRoutes } from '../app/modules/commentReply/commentReply.route';
 import { OfferRoute } from '../app/modules/offer/offer.route';
 import { BlockRoutes } from '../app/modules/block/block.route';
+import { PayoutRecordRoute } from '../app/modules/payoutRecord/payoutRecord.route';
 
 const router = express.Router();
 
@@ -47,6 +48,7 @@ const apiRoutes = [
   { path: '/interest', route: InterestRoutes },
   { path: '/offer', route: OfferRoute },
   { path: '/block', route: BlockRoutes },
+  { path: '/record', route: PayoutRecordRoute },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));

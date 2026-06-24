@@ -5,10 +5,12 @@ import { IOffer } from './offer.interface';
 import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
 import { Offer } from './offer.model';
-import { transferMoney } from '../payment/utils';
-import { IPayoutConfirmation } from '../../../types/emailTamplate';
-import { emailTemplate } from '../../../shared/emailTemplate';
+import {
+  emailTemplate,
+  ITaskCompletionConfirmation,
+} from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
+import { PayoutRecord } from '../payoutRecord/payoutRecord.model';
 
 const createOffer = async (payload: IOffer) => {
   const validProvider = await User.findById(payload.provider);
@@ -122,6 +124,7 @@ const rejectOffer = async (offerId: string, customerId: string) => {
   return offer;
 };
 
+//TODO: need maual payut
 const completeOffer = async (
   userId: string,
   offerId: string,
@@ -151,11 +154,21 @@ const completeOffer = async (
   // Perform all database operations
   const payoutAmount = (amount || 0) - 8;
 
+  //TODO: record should keep in the database as pending status.....
   // External side-effects
-  await transferMoney({
+  // await transferMoney({
+  //   amount: payoutAmount,
+  //   description: `Payout for offer ${offerId}`,
+  //   stripeAccountId: serviceProvider.stripeAccountId as string,
+  // });
+
+  // keep payout record in the database for admin dashboard
+  await PayoutRecord.create({
+    provider: serviceProvider._id,
+    card: serviceProvider?.card || 'CARD',
     amount: payoutAmount,
-    description: `Payout for offer ${offerId}`,
-    stripeAccountId: serviceProvider.stripeAccountId as string,
+    status: 'PENDING',
+    service: offer.service,
   });
 
   const updatedOffer = await Offer.findByIdAndUpdate(
@@ -164,14 +177,17 @@ const completeOffer = async (
     { new: true },
   );
 
-  const emailValues: IPayoutConfirmation = {
+  // update mail message for service provider
+  const emailValues: ITaskCompletionConfirmation = {
     email: serviceProvider.paypalAccount as string,
     amount: payoutAmount,
     status: 'COMPLETED',
-    paypalBatchId: 'TRANSFERRED_VIA_STRIPE',
+    message:
+      'Service provided completed. You will receive your payment within 3–7 working days. If urgent, you can contact the admin.',
   };
 
-  const hostConfirmationMail = emailTemplate.payoutConfirmation(emailValues);
+  const hostConfirmationMail =
+    emailTemplate.taskCompletionConfirmation(emailValues);
   await emailHelper.sendEmail(hostConfirmationMail);
 
   return updatedOffer;

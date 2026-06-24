@@ -98,6 +98,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: Number,
       default: 0,
     },
+    card: {
+      type: String,
+      default: '',
+    },
     authentication: {
       type: {
         isResetPassword: {

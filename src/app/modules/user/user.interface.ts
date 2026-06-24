@@ -22,6 +22,7 @@ export type IUser = {
   following?: number;
   paypalAccount?: string;
   income?: number;
+  card?: string;
   location: {
     type: string;
     coordinates: [longtitude: number, latitude: number];
