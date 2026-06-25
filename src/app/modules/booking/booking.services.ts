@@ -158,7 +158,6 @@ const completeBooking = async (userId: string, bookingId: string) => {
       email: serviceProvider.paypalAccount as string,
       amount: payoutAmount,
       status: 'COMPLETED',
-      paypalBatchId: 'TRANSFERRED_VIA_STRIPE',
     };
 
     const hostConfermationMail = emailTemplate.payoutConfirmation(emailValues);
