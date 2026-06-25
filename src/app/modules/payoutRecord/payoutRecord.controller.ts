@@ -17,6 +17,8 @@ const getAllPayoutRecord = catchAsync(async (req, res) => {
       totalPage: result.meta.totalPage,
       total: result.meta.total,
     },
+    pending: result.pending,
+    complete: result.complete,
   });
 });
 

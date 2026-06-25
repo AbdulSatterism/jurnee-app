@@ -11,6 +11,8 @@ type IData<T> = {
     totalPage: number;
     total: number;
   };
+  pending?: number;
+  complete?: number;
   data?: T;
 };
 
@@ -21,6 +23,8 @@ const sendResponse = <T>(res: Response, data: IData<T>) => {
     meta: data.meta,
     paymentIntent: data.paymentIntent,
     data: data.data,
+    pending: data.pending,
+    complete: data.complete,
   };
   res.status(data.statusCode).json(resData);
 };

@@ -10,13 +10,15 @@ const getAllPayoutRecord = async (query: Record<string, any>) => {
   const size = parseInt(limit as string) || 10;
   const skip = (pages - 1) * size;
 
-  const [result, total] = await Promise.all([
+  const [result, total, totalPending, totalCompleted] = await Promise.all([
     PayoutRecord.find()
       .populate('provider', 'name email card')
       .sort({ status: -1, createdAt: -1 })
       .skip(skip)
       .limit(size),
     PayoutRecord.countDocuments(),
+    PayoutRecord.countDocuments({ status: 'PENDING' }),
+    PayoutRecord.countDocuments({ status: 'COMPLETED' }),
   ]);
 
   const totalPage = Math.ceil(total / size);
@@ -29,6 +31,8 @@ const getAllPayoutRecord = async (query: Record<string, any>) => {
       totalPage,
       total,
     },
+    pending: totalPending,
+    complete: totalCompleted,
   };
 };
 
