@@ -13,5 +13,4 @@ export type IPayoutConfirmation = {
   email: string;
   amount: number;
   status: string;
-  paypalBatchId: string;
 };

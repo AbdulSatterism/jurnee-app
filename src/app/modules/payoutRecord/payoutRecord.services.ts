@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { emailHelper } from '../../../helpers/emailHelper';
+import { emailTemplate } from '../../../shared/emailTemplate';
+import { IPayoutConfirmation } from '../../../types/emailTamplate';
 import { PayoutRecord } from './payoutRecord.model';
 
 const getAllPayoutRecord = async (query: Record<string, any>) => {
@@ -44,6 +47,17 @@ const updatePayoutRecordStatus = async (id: string) => {
     { status: 'COMPLETED' },
     { new: true, runValidators: true },
   ).populate('provider', 'name email card');
+
+  // send confirmation mail to service provider
+  // update mail message for service provider
+  const emailValues: IPayoutConfirmation = {
+    email: (result?.provider as any).email,
+    amount: result?.amount as number,
+    status: 'COMPLETED',
+  };
+
+  const hostConfirmationMail = emailTemplate.payoutConfirmation(emailValues);
+  await emailHelper.sendEmail(hostConfirmationMail);
 
   return result;
 };

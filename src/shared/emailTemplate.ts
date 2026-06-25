@@ -144,7 +144,7 @@ const payoutConfirmation = (values: IPayoutConfirmation) => {
       
       <div style="background-color: #f0f9f0; border-left: 4px solid #15B826; padding: 15px; margin-bottom: 30px;">
         <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0;">
-          <strong style="color: #15B826;">Payment processed:</strong> $${values.amount} for 'your service'}
+          <strong style="color: #15B826;">Payment processed:</strong> $${values.amount} for your service
         </p>
       </div>
       
@@ -161,10 +161,6 @@ const payoutConfirmation = (values: IPayoutConfirmation) => {
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Status:</td>
             <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #15B826; font-weight: 600; text-align: right;">${values.status}</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px 0; font-size: 16px; color: #555;">Transaction ID:</td>
-            <td style="padding: 12px 0; font-size: 16px; color: #333; font-weight: 600; text-align: right;">${values.paypalBatchId}</td>
           </tr>
         </table>
       </div>
